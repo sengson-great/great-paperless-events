@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import InstallBootstrap from "./components/installBootstrap";
 import AuthHeader from "./components/AuthHeader"; // ← Separate client component
 
 const geistSans = Geist({
@@ -29,7 +28,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <InstallBootstrap />
         
         {/* Client component handling auth UI */}
         <AuthHeader />
