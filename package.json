@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@clerk/nextjs": "^6.36.5",
     "bootstrap": "^5.3.8",
     "firebase": "^12.7.0",
     "firebase-admin": "^13.6.0",

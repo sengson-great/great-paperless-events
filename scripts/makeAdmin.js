@@ -2,7 +2,7 @@
 const admin = require('firebase-admin');
 
 // Download your service account key from Firebase Console > Project Settings > Service Accounts > Generate new private key
-const serviceAccount = require('../paperless-events-firebase-adminsdk-fbsvc-a7b6d0c19a.json'); // Put the JSON file here
+const serviceAccount = require('../paperless-events-firebase-adminsdk-fbsvc-cb16d99db8.json'); // Put the JSON file here
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
