@@ -1,8 +1,9 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, Plus, Edit2, Trash2, Loader2, LayoutTemplate, 
-  Save, X, Move, Image as ImageIcon, Type, RotateCw, Upload
+  Save, X, Move, Image as ImageIcon, Type, RotateCw, Upload,
+  GripVertical, Lock, Unlock
 } from 'lucide-react';
 import Sidebar from '@/app/components/sidebar';
 import Header from '@/app/components/adminHeader';
@@ -72,6 +73,12 @@ const EventDashboard: React.FC = () => {
     { id: Date.now(), type: 'rectangle', x: 0, y: 0, width: 800, height: 1000, bgColor: '#ffffff', locked: true }
   ]);
   const [selectedElementId, setSelectedElementId] = useState<number | null>(null);
+  
+  // Drag state
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [elementStart, setElementStart] = useState({ x: 0, y: 0 });
+  const [resizing, setResizing] = useState<{ elementId: number | null; corner: string | null }>({ elementId: null, corner: null });
 
   // Placeholders
   const [placeholders, setPlaceholders] = useState<string[]>([]);
@@ -79,6 +86,9 @@ const EventDashboard: React.FC = () => {
 
   // Image upload state
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  // Canvas ref
+  const canvasRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     console.log("Categories updated:", categories);
@@ -150,6 +160,167 @@ const EventDashboard: React.FC = () => {
 
     fetchData();
   }, [isAdmin]);
+
+  // Drag and Drop Handlers
+  const handleDragStart = (e: React.MouseEvent, elementId: number) => {
+    if (!canvasRef.current) return;
+    
+    const element = elements.find(el => el.id === elementId);
+    if (!element || element.locked) return;
+    
+    e.preventDefault();
+    setIsDragging(true);
+    setSelectedElementId(elementId);
+    
+    const canvasRect = canvasRef.current.getBoundingClientRect();
+    setDragStart({
+      x: e.clientX - canvasRect.left,
+      y: e.clientY - canvasRect.top
+    });
+    setElementStart({
+      x: element.x,
+      y: element.y
+    });
+  };
+
+  const handleDrag = (e: React.MouseEvent) => {
+    if (!isDragging || !selectedElementId || !canvasRef.current) return;
+    
+    const canvasRect = canvasRef.current.getBoundingClientRect();
+    const deltaX = e.clientX - canvasRect.left - dragStart.x;
+    const deltaY = e.clientY - canvasRect.top - dragStart.y;
+    
+    const newX = Math.max(0, Math.min(800 - elements.find(el => el.id === selectedElementId)!.width, elementStart.x + deltaX));
+    const newY = Math.max(0, Math.min(1000 - elements.find(el => el.id === selectedElementId)!.height, elementStart.y + deltaY));
+    
+    updateElement(selectedElementId, { x: newX, y: newY });
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  // Resize Handlers
+  const handleResizeStart = (e: React.MouseEvent, elementId: number, corner: string) => {
+    e.stopPropagation();
+    const element = elements.find(el => el.id === elementId);
+    if (!element || element.locked) return;
+    
+    setResizing({ elementId, corner });
+    setSelectedElementId(elementId);
+    
+    if (canvasRef.current) {
+      const canvasRect = canvasRef.current.getBoundingClientRect();
+      setDragStart({
+        x: e.clientX - canvasRect.left,
+        y: e.clientY - canvasRect.top
+      });
+      setElementStart({
+        x: element.width,
+        y: element.height
+      });
+    }
+  };
+
+  const handleResize = (e: React.MouseEvent) => {
+    if (!resizing.elementId || !canvasRef.current) return;
+    
+    const element = elements.find(el => el.id === resizing.elementId);
+    if (!element) return;
+    
+    const canvasRect = canvasRef.current.getBoundingClientRect();
+    const deltaX = e.clientX - canvasRect.left - dragStart.x;
+    const deltaY = e.clientY - canvasRect.top - dragStart.y;
+    
+    let newWidth = element.width;
+    let newHeight = element.height;
+    let newX = element.x;
+    let newY = element.y;
+    
+    // Calculate new dimensions based on which corner is being dragged
+    switch (resizing.corner) {
+      case 'se':
+        newWidth = Math.max(50, elementStart.x + deltaX);
+        newHeight = Math.max(50, elementStart.y + deltaY);
+        break;
+      case 'sw':
+        newWidth = Math.max(50, elementStart.x - deltaX);
+        newHeight = Math.max(50, elementStart.y + deltaY);
+        newX = element.x + deltaX;
+        break;
+      case 'ne':
+        newWidth = Math.max(50, elementStart.x + deltaX);
+        newHeight = Math.max(50, elementStart.y - deltaY);
+        newY = element.y + deltaY;
+        break;
+      case 'nw':
+        newWidth = Math.max(50, elementStart.x - deltaX);
+        newHeight = Math.max(50, elementStart.y - deltaY);
+        newX = element.x + deltaX;
+        newY = element.y + deltaY;
+        break;
+    }
+    
+    // Keep within canvas bounds
+    if (newX < 0) {
+      newWidth += newX;
+      newX = 0;
+    }
+    if (newY < 0) {
+      newHeight += newY;
+      newY = 0;
+    }
+    if (newX + newWidth > 800) {
+      newWidth = 800 - newX;
+    }
+    if (newY + newHeight > 1000) {
+      newHeight = 1000 - newY;
+    }
+    
+    // Ensure minimum size
+    newWidth = Math.max(50, newWidth);
+    newHeight = Math.max(50, newHeight);
+    
+    updateElement(element.id, {
+      x: newX,
+      y: newY,
+      width: newWidth,
+      height: newHeight
+    });
+  };
+
+  const handleResizeEnd = () => {
+    setResizing({ elementId: null, corner: null });
+  };
+
+  // Add mouse event listeners for global dragging
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        handleDrag(e as unknown as React.MouseEvent);
+      }
+      if (resizing.elementId) {
+        handleResize(e as unknown as React.MouseEvent);
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (isDragging) {
+        handleDragEnd();
+      }
+      if (resizing.elementId) {
+        handleResizeEnd();
+      }
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, resizing]);
 
   // Category handlers
   const handleSaveCategory = async () => {
@@ -249,13 +420,11 @@ const EventDashboard: React.FC = () => {
   const handleImageUpload = (elementId: number, file: File) => {
     setUploadingImage(true);
     
-    // Create a FileReader to read the image
     const reader = new FileReader();
     
     reader.onload = (event) => {
       const imageUrl = event.target?.result as string;
       
-      // Update the element with the new image
       setElements(elements.map(el => 
         el.id === elementId ? { ...el, imageUrl } : el
       ));
@@ -276,7 +445,6 @@ const EventDashboard: React.FC = () => {
   };
 
   const deleteElement = (id: number) => {
-    // Prevent deleting the background rectangle
     const elementToDelete = elements.find(el => el.id === id);
     if (elementToDelete?.locked) {
       alert('Cannot delete locked background element');
@@ -285,6 +453,13 @@ const EventDashboard: React.FC = () => {
     
     setElements(elements.filter(el => el.id !== id));
     if (selectedElementId === id) setSelectedElementId(null);
+  };
+
+  const toggleElementLock = (id: number) => {
+    const element = elements.find(el => el.id === id);
+    if (element) {
+      updateElement(id, { locked: !element.locked });
+    }
   };
 
   const selectedElement = elements.find(el => el.id === selectedElementId);
@@ -310,133 +485,99 @@ const EventDashboard: React.FC = () => {
   };
 
   // Template save
-// Template save - FIXED VERSION
-const handleSaveTemplate = async () => {
-  if (!templateName.trim() || !templateCategory || elements.length <= 1) {
-    alert('Name, category, and at least one element required');
-    return;
-  }
+  const handleSaveTemplate = async () => {
+    if (!templateName.trim() || !templateCategory || elements.length <= 1) {
+      alert('Name, category, and at least one element required');
+      return;
+    }
 
-  try {
-    const templateData = {
-      name: templateName.trim(),
-      categoryId: templateCategory,
-      elements: elements.map(el => ({
-        ...el,
-        // Convert id to string for consistency
-        id: typeof el.id === 'number' ? el.id.toString() : el.id
-      })),
-      placeholders,
-      previewImage: previewImage || null,
-      description: templateDescription.trim() || null,
-      isActive: true,
-      updatedAt: serverTimestamp(),
-    };
+    try {
+      const templateData = {
+        name: templateName.trim(),
+        categoryId: templateCategory,
+        elements: elements.map(el => ({
+          ...el,
+          id: typeof el.id === 'number' ? el.id.toString() : el.id
+        })),
+        placeholders,
+        previewImage: previewImage || null,
+        description: templateDescription.trim() || null,
+        isActive: true,
+        updatedAt: serverTimestamp(),
+      };
 
-    console.log('Saving template:', {
-      editingTemplate: editingTemplate,
-      templateData: templateData,
-      templateCategory: templateCategory,
-      editingTemplateCategory: editingTemplate?.categoryId
-    });
-
-    if (editingTemplate && editingTemplate.id) {
-      // CRITICAL FIX: Use editingTemplate.categoryId for the document path
-      // but use the NEW templateCategory in the data
-      const categoryIdForPath = editingTemplate.categoryId;
-      const templateId = editingTemplate.id;
-      
-      console.log('Updating template:', {
-        categoryIdForPath: categoryIdForPath,
-        templateId: templateId,
-        newCategoryIdInData: templateCategory
-      });
-
-      // Check if category was changed
-      if (categoryIdForPath !== templateCategory) {
-        // If category changed, we need to:
-        // 1. Create new document in new category
-        // 2. Delete old document from old category
-        const newDocRef = await addDoc(
-          collection(db, 'categories', templateCategory, 'templates'), 
-          { ...templateData, createdAt: serverTimestamp() }
-        );
+      if (editingTemplate && editingTemplate.id) {
+        const categoryIdForPath = editingTemplate.categoryId;
+        const templateId = editingTemplate.id;
         
-        // Delete old document
-        await deleteDoc(doc(db, 'categories', categoryIdForPath, 'templates', templateId));
-        
-        alert('Template moved to new category and updated successfully!');
+        if (categoryIdForPath !== templateCategory) {
+          const newDocRef = await addDoc(
+            collection(db, 'categories', templateCategory, 'templates'), 
+            { ...templateData, createdAt: serverTimestamp() }
+          );
+          
+          await deleteDoc(doc(db, 'categories', categoryIdForPath, 'templates', templateId));
+          
+          alert('Template moved to new category and updated successfully!');
+        } else {
+          await updateDoc(
+            doc(db, 'categories', categoryIdForPath, 'templates', templateId), 
+            templateData
+          );
+          alert('Template updated successfully!');
+        }
       } else {
-        // Same category, just update
-        await updateDoc(
-          doc(db, 'categories', categoryIdForPath, 'templates', templateId), 
-          templateData
-        );
-        alert('Template updated successfully!');
+        await addDoc(collection(db, 'categories', templateCategory, 'templates'), {
+          ...templateData,
+          createdAt: serverTimestamp(),
+        });
+        alert('Template created successfully!');
       }
-    } else {
-      // Create new template
-      await addDoc(collection(db, 'categories', templateCategory, 'templates'), {
-        ...templateData,
-        createdAt: serverTimestamp(),
-      });
-      alert('Template created successfully!');
-    }
 
-    setShowTemplateForm(false);
-    resetTemplateForm();
-    
-    // Refresh data
-    const fetchData = async () => {
-      const catQuery = query(collection(db, 'categories'), orderBy('order'));
-      const catSnap = await getDocs(catQuery);
-      const cats = catSnap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Category[];
-      setCategories(cats);
-
-      const templatePromises = cats.map(async (cat) => {
-        const tempQuery = query(
-          collection(db, `categories/${cat.id}/templates`), 
-          orderBy('createdAt', 'desc')
-        );
-        const tempSnap = await getDocs(tempQuery);
-        return tempSnap.docs.map(doc => ({
+      setShowTemplateForm(false);
+      resetTemplateForm();
+      
+      const fetchData = async () => {
+        const catQuery = query(collection(db, 'categories'), orderBy('order'));
+        const catSnap = await getDocs(catQuery);
+        const cats = catSnap.docs.map(doc => ({
           id: doc.id,
-          categoryId: cat.id,
           ...doc.data()
-        })) as Template[];
-      });
+        })) as Category[];
+        setCategories(cats);
+
+        const templatePromises = cats.map(async (cat) => {
+          const tempQuery = query(
+            collection(db, `categories/${cat.id}/templates`), 
+            orderBy('createdAt', 'desc')
+          );
+          const tempSnap = await getDocs(tempQuery);
+          return tempSnap.docs.map(doc => ({
+            id: doc.id,
+            categoryId: cat.id,
+            ...doc.data()
+          })) as Template[];
+        });
+        
+        const templateResults = await Promise.all(templatePromises);
+        const allTemplates = templateResults.flat();
+        setTemplates(allTemplates);
+      };
       
-      const templateResults = await Promise.all(templatePromises);
-      const allTemplates = templateResults.flat();
-      setTemplates(allTemplates);
-    };
-    
-    // Add delay to ensure Firebase has processed the update
-    setTimeout(() => {
-      fetchData();
-    }, 1000);
-    
-  } catch (err: any) {
-    console.error('Save error details:', {
-      error: err,
-      code: err.code,
-      message: err.message,
-      editingTemplate: editingTemplate,
-      templateCategory: templateCategory
-    });
-    
-    if (err.code === 'not-found') {
-      alert(`Error: Template not found. It may have been deleted. 
+      setTimeout(() => {
+        fetchData();
+      }, 1000);
       
+    } catch (err: any) {
+      if (err.code === 'not-found') {
+        alert(`Error: Template not found. It may have been deleted. 
+        
 Try creating it as a new template instead.`);
-    } else {
-      alert(`Failed: ${err.message}`);
+      } else {
+        alert(`Failed: ${err.message}`);
+      }
     }
-  }
-};
+  };
 
   const handleDeleteTemplate = async (templateId: string, categoryId: string) => {
     if (!confirm('Are you sure you want to delete this template?')) return;
@@ -460,6 +601,8 @@ Try creating it as a new template instead.`);
     setElements([{ id: Date.now(), type: 'rectangle', x: 0, y: 0, width: 800, height: 1000, bgColor: '#ffffff', locked: true }]);
     setSelectedElementId(null);
     setEditingTemplate(null);
+    setIsDragging(false);
+    setResizing({ elementId: null, corner: null });
   };
 
   if (authLoading || loading) {
@@ -491,7 +634,7 @@ Try creating it as a new template instead.`);
             </button>
           </div>
 
-          {/* Categories Tab */}
+          {/* Categories Tab - Same as before */}
           {activeTab === 'categories' && (
             <div>
               <div className="flex justify-between mb-6">
@@ -568,7 +711,7 @@ Try creating it as a new template instead.`);
             </div>
           )}
 
-          {/* Templates Tab */}
+          {/* Templates Tab - Same as before */}
           {activeTab === 'templates' && (
             <div>
               <div className="flex justify-between mb-6">
@@ -585,12 +728,6 @@ Try creating it as a new template instead.`);
                 </button>
               </div>
 
-              {/* Debug info - remove after testing */}
-              <div className="mb-4 p-4 bg-gray-100 rounded">
-                <p className="text-sm">Categories: {categories.length}, Templates: {templates.length}</p>
-              </div>
-
-              {/* Template Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {templates.length === 0 ? (
                   <div className="col-span-3 text-center py-12">
@@ -691,7 +828,7 @@ Try creating it as a new template instead.`);
         </div>
       </div>
 
-      {/* Category Modal */}
+      {/* Category Modal - Same as before */}
       {showCategoryModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
@@ -733,7 +870,7 @@ Try creating it as a new template instead.`);
         </div>
       )}
 
-      {/* Template Designer Modal */}
+      {/* Template Designer Modal with Drag & Drop */}
       {showTemplateForm && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-7xl h-[95vh] flex overflow-hidden">
@@ -831,6 +968,39 @@ Try creating it as a new template instead.`);
                   </div>
                 </div>
 
+                <div>
+                  <label className="block font-medium mb-3">Placeholders</label>
+                  <div className="flex gap-2 mb-3">
+                    <input
+                      type="text"
+                      value={newPlaceholderLabel}
+                      onChange={e => setNewPlaceholderLabel(e.target.value)}
+                      className="flex-1 px-4 py-2 border rounded-lg"
+                      placeholder="E.g., Bride Name"
+                      onKeyPress={(e) => e.key === 'Enter' && addPlaceholder()}
+                    />
+                    <button
+                      onClick={addPlaceholder}
+                      className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {placeholders.map((ph, index) => (
+                      <div key={index} className="flex items-center gap-1 bg-blue-50 text-blue-700 px-3 py-1 rounded-lg">
+                        <span>{ph}</span>
+                        <button
+                          onClick={() => removePlaceholder(ph)}
+                          className="text-blue-500 hover:text-blue-700"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 <button
                   onClick={handleSaveTemplate}
                   className="w-full py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold flex items-center justify-center gap-3"
@@ -841,16 +1011,31 @@ Try creating it as a new template instead.`);
               </div>
             </div>
 
-            {/* Right Panel - Canvas */}
+            {/* Right Panel - Canvas with Drag & Drop */}
             <div className="flex-1 bg-gray-100 p-8 overflow-auto">
               <div className="max-w-4xl mx-auto">
-                <h4 className="text-lg font-medium mb-4">Live Preview</h4>
+                <h4 className="text-lg font-medium mb-4">Live Preview (Drag elements to position)</h4>
                 <div className="bg-white shadow-2xl rounded-xl overflow-hidden">
-                  <div className="relative" style={{ width: '800px', height: '1000px', margin: '0 auto' }}>
+                  <div 
+                    ref={canvasRef}
+                    className="relative" 
+                    style={{ 
+                      width: '800px', 
+                      height: '1000px', 
+                      margin: '0 auto',
+                      cursor: isDragging || resizing.elementId ? 'grabbing' : 'default'
+                    }}
+                    onMouseDown={(e) => {
+                      // Click on canvas background to deselect
+                      if (e.target === e.currentTarget) {
+                        setSelectedElementId(null);
+                      }
+                    }}
+                  >
                     {elements.map(el => (
                       <div
                         key={el.id}
-                        className={`absolute border-2 ${selectedElementId === el.id ? 'border-blue-500' : 'border-transparent'} hover:border-blue-300 cursor-move`}
+                        className={`absolute ${selectedElementId === el.id ? 'border-blue-500 border-2' : 'border-transparent hover:border-blue-300 border-2'} ${el.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
                         style={{
                           left: el.x,
                           top: el.y,
@@ -858,14 +1043,82 @@ Try creating it as a new template instead.`);
                           height: el.height,
                           transform: el.rotation ? `rotate(${el.rotation}deg)` : 'none',
                           backgroundColor: el.bgColor || 'transparent',
+                          userSelect: 'none',
                         }}
-                        onClick={() => setSelectedElementId(el.id)}
+                        onClick={(e) => {
+                          if (!el.locked) {
+                            setSelectedElementId(el.id);
+                          }
+                          e.stopPropagation();
+                        }}
+                        onMouseDown={(e) => {
+                          if (!el.locked && e.button === 0) {
+                            handleDragStart(e, el.id);
+                            e.stopPropagation();
+                          }
+                        }}
                       >
+                        {/* Drag Handle */}
+                        {!el.locked && (
+                          <div 
+                            className="absolute -top-2 -left-2 bg-blue-500 text-white p-1 rounded-full cursor-move hover:bg-blue-600 z-10"
+                            onMouseDown={(e) => {
+                              handleDragStart(e, el.id);
+                              e.stopPropagation();
+                            }}
+                            title="Drag to move"
+                          >
+                            <GripVertical size={12} />
+                          </div>
+                        )}
+
+                        {/* Lock/Unlock Toggle */}
+                        <button
+                          onClick={(e) => {
+                            toggleElementLock(el.id);
+                            e.stopPropagation();
+                          }}
+                          className="absolute -top-2 -right-2 bg-gray-500 text-white p-1 rounded-full hover:bg-gray-600 z-10"
+                          title={el.locked ? "Unlock element" : "Lock element"}
+                        >
+                          {el.locked ? <Lock size={12} /> : <Unlock size={12} />}
+                        </button>
+
+                        {/* Resize Handles */}
+                        {!el.locked && selectedElementId === el.id && (
+                          <>
+                            {/* SE corner */}
+                            <div
+                              className="absolute bottom-0 right-0 w-4 h-4 bg-blue-500 cursor-se-resize"
+                              onMouseDown={(e) => handleResizeStart(e, el.id, 'se')}
+                            />
+                            {/* SW corner */}
+                            <div
+                              className="absolute bottom-0 left-0 w-4 h-4 bg-blue-500 cursor-sw-resize"
+                              onMouseDown={(e) => handleResizeStart(e, el.id, 'sw')}
+                            />
+                            {/* NE corner */}
+                            <div
+                              className="absolute top-0 right-0 w-4 h-4 bg-blue-500 cursor-ne-resize"
+                              onMouseDown={(e) => handleResizeStart(e, el.id, 'ne')}
+                            />
+                            {/* NW corner */}
+                            <div
+                              className="absolute top-0 left-0 w-4 h-4 bg-blue-500 cursor-nw-resize"
+                              onMouseDown={(e) => handleResizeStart(e, el.id, 'nw')}
+                            />
+                          </>
+                        )}
+
                         {el.type === 'text' && (
                           <div
                             className="w-full h-full flex items-center justify-center p-4 text-center overflow-hidden"
-                            style={{ fontSize: el.fontSize || 24, color: el.color || '#000' }}
-                            contentEditable
+                            style={{ 
+                              fontSize: el.fontSize || 24, 
+                              color: el.color || '#000',
+                              pointerEvents: el.locked ? 'none' : 'auto'
+                            }}
+                            contentEditable={!el.locked}
                             suppressContentEditableWarning
                             onBlur={(e) => updateElement(el.id, { content: e.currentTarget.textContent || '' })}
                           >
@@ -883,13 +1136,14 @@ Try creating it as a new template instead.`);
                             )}
                           </div>
                         )}
-                        {/* Always visible delete button */}
+                        
+                        {/* Delete Button */}
                         <button
                           onClick={(e) => { 
                             e.stopPropagation(); 
                             deleteElement(el.id); 
                           }}
-                          className="absolute -top-3 -right-3 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition shadow-lg"
+                          className="absolute -bottom-3 -right-3 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition shadow-lg z-10"
                           title="Delete element"
                         >
                           <Trash2 size={16} />
@@ -902,10 +1156,18 @@ Try creating it as a new template instead.`);
                 {/* Selected Element Controls */}
                 {selectedElement && (
                   <div className="mt-8 bg-white rounded-lg shadow p-6">
-                    <h4 className="font-medium mb-4">
-                      Edit Selected Element ({selectedElement.type})
-                      {selectedElement.locked && <span className="ml-2 text-sm text-gray-500">(Locked)</span>}
-                    </h4>
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="font-medium">
+                        Edit Selected Element ({selectedElement.type})
+                        {selectedElement.locked && <span className="ml-2 text-sm text-gray-500">(Locked)</span>}
+                      </h4>
+                      <button
+                        onClick={() => toggleElementLock(selectedElement.id)}
+                        className={`px-3 py-1 rounded text-sm ${selectedElement.locked ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}
+                      >
+                        {selectedElement.locked ? 'Unlock' : 'Lock'}
+                      </button>
+                    </div>
                     
                     {selectedElement.type === 'image' && (
                       <div className="mb-4 p-4 border rounded-lg bg-gray-50">
@@ -921,7 +1183,7 @@ Try creating it as a new template instead.`);
                               }
                             }}
                             className="flex-1"
-                            disabled={uploadingImage}
+                            disabled={uploadingImage || selectedElement.locked}
                           />
                           {uploadingImage && <Loader2 className="animate-spin" size={20} />}
                         </div>
@@ -984,6 +1246,7 @@ Try creating it as a new template instead.`);
                               value={selectedElement.fontSize || 24}
                               onChange={e => updateElement(selectedElement.id, { fontSize: Number(e.target.value) })}
                               className="w-full px-3 py-2 border rounded"
+                              disabled={selectedElement.locked}
                             />
                           </div>
                           <div>
@@ -993,6 +1256,7 @@ Try creating it as a new template instead.`);
                               value={selectedElement.color || '#000000'}
                               onChange={e => updateElement(selectedElement.id, { color: e.target.value })}
                               className="w-full h-10 rounded"
+                              disabled={selectedElement.locked}
                             />
                           </div>
                         </div>
@@ -1003,6 +1267,7 @@ Try creating it as a new template instead.`);
                             value={selectedElement.bgColor || 'transparent'}
                             onChange={e => updateElement(selectedElement.id, { bgColor: e.target.value })}
                             className="w-full h-10 rounded"
+                            disabled={selectedElement.locked}
                           />
                         </div>
                       </div>
@@ -1049,6 +1314,18 @@ Try creating it as a new template instead.`);
                     )}
                   </div>
                 )}
+
+                {/* Instructions */}
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                  <h5 className="font-medium text-blue-800 mb-2">How to Use:</h5>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    <li>• Click and drag the <GripVertical size={12} className="inline" /> handle to move elements</li>
+                    <li>• Drag corners to resize elements</li>
+                    <li>• Use the lock button to prevent accidental changes</li>
+                    <li>• Double-click text elements to edit content</li>
+                    <li>• Use the sliders and inputs for precise control</li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
