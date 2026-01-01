@@ -50,7 +50,7 @@ export default function Sidebar() {
         </nav>
 
         {/* User Profile at Bottom */}
-        <div className="absolute bottom-4 left-4 bg-blue-400 text-white p-3 rounded-lg shadow-md">
+        {/* <div className="absolute bottom-4 left-4 bg-blue-400 text-white p-3 rounded-lg shadow-md">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-blue-300 rounded-full flex items-center justify-center">
               👤
@@ -61,7 +61,7 @@ export default function Sidebar() {
               <p className="text-blue-100">@gmail.com</p>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     )
 }

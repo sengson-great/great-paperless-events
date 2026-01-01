@@ -22,7 +22,7 @@ export default function MyEvents() {
 
     // Query saved invitations for current user
     const q = query(
-      collection(db, 'users', user.uid, 'savedInvitations'), // ← Fixed: user.uid
+      collection(db, 'users', user.uid, 'savedInvitations'),
       orderBy('savedAt', 'desc')
     );
 

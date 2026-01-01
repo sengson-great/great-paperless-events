@@ -1,0 +1,892 @@
+[debug] [2025-12-31T01:53:45.115Z] ----------------------------------------------------------------------
+[debug] [2025-12-31T01:53:45.117Z] Command:       /Users/chhuong/.nvm/versions/node/v24.6.0/bin/node /Users/chhuong/.nvm/versions/node/v24.6.0/bin/firebase emulators:start --only functions
+[debug] [2025-12-31T01:53:45.117Z] CLI Version:   15.1.0
+[debug] [2025-12-31T01:53:45.117Z] Platform:      darwin
+[debug] [2025-12-31T01:53:45.117Z] Node Version:  v24.6.0
+[debug] [2025-12-31T01:53:45.118Z] Time:          Wed Dec 31 2025 08:53:45 GMT+0700 (Indochina Time)
+[debug] [2025-12-31T01:53:45.118Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-12-31T01:53:45.888Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-12-31T01:53:45.888Z] > authorizing via signed-in user (sengvengchhuong@gmail.com)
+[info] i  emulators: Starting emulators: functions {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: functions"}}
+[debug] [2025-12-31T01:53:46.241Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-12-31T01:53:46.241Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2025-12-31T01:53:46.244Z] Emulator locator file path: /var/folders/6s/mnkjjbz916x4scbl5my9ss1r0000gn/T/hub-paperless-events.json
+[debug] [2025-12-31T01:53:46.244Z] [hub] writing locator at /var/folders/6s/mnkjjbz916x4scbl5my9ss1r0000gn/T/hub-paperless-events.json
+[debug] [2025-12-31T01:53:46.578Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-12-31T01:53:46.578Z] [eventarc] Eventarc Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-12-31T01:53:46.578Z] [tasks] Cloud Tasks Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-12-31T01:53:46.578Z] late-assigned ports for functions and eventarc emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"functions":[{"address":"127.0.0.1","family":"IPv4","port":5001}],"eventarc":[{"address":"127.0.0.1","family":"IPv4","port":9299}],"tasks":[{"address":"127.0.0.1","family":"IPv4","port":9499}]},"metadata":{"message":"late-assigned ports for functions and eventarc emulators"}}
+[warn] ⚠  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, auth, firestore, database, hosting, pubsub, storage, dataconnect {"metadata":{"emulator":{"name":"functions"},"message":"The following emulators are not running, calls to these services from the Functions emulator will affect production: \u001b[1mapphosting, auth, firestore, database, hosting, pubsub, storage, dataconnect\u001b[22m"}}
+[debug] [2025-12-31T01:53:46.585Z] defaultcredentials: writing to file /Users/chhuong/.config/firebase/sengvengchhuong_gmail_com_application_default_credentials.json
+[debug] [2025-12-31T01:53:46.586Z] Setting GAC to /Users/chhuong/.config/firebase/sengvengchhuong_gmail_com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to /Users/chhuong/.config/firebase/sengvengchhuong_gmail_com_application_default_credentials.json"}}
+[debug] [2025-12-31T01:53:46.586Z] Checked if tokens are valid: true, expires at: 1767147200884
+[debug] [2025-12-31T01:53:46.587Z] Checked if tokens are valid: true, expires at: 1767147200884
+[debug] [2025-12-31T01:53:46.587Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/paperless-events/adminSdkConfig [none]
+[debug] [2025-12-31T01:53:47.529Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/paperless-events/adminSdkConfig 200
+[debug] [2025-12-31T01:53:47.529Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/paperless-events/adminSdkConfig {"projectId":"paperless-events","storageBucket":"paperless-events.firebasestorage.app"}
+[info] i  functions: Watching "/Users/chhuong/paperless-event/functions" for Cloud Functions... {"metadata":{"emulator":{"name":"functions"},"message":"Watching \"/Users/chhuong/paperless-event/functions\" for Cloud Functions..."}}
+[debug] [2025-12-31T01:53:47.557Z] Validating nodejs source
+[debug] [2025-12-31T01:53:48.246Z] > [functions] package.json contents: {
+  "name": "functions",
+  "scripts": {
+    "lint": "eslint .",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "24"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "firebase-admin": "^13.6.0",
+    "firebase-functions": "^7.0.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.12.0",
+    "@typescript-eslint/parser": "^5.12.0",
+    "eslint": "^8.9.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-import": "^2.25.4",
+    "firebase-functions-test": "^3.4.1",
+    "typescript": "^5.7.3"
+  },
+  "private": true
+}
+[debug] [2025-12-31T01:53:48.247Z] Building nodejs source
+[debug] [2025-12-31T01:53:48.247Z] Failed to find version of module node: reached end of search path /Users/chhuong/paperless-event/functions/node_modules
+[info] ✔  functions: Using node@24 from host. 
+[debug] [2025-12-31T01:53:48.248Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-12-31T01:53:48.252Z] Found firebase-functions binary at '/Users/chhuong/paperless-event/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8636
+
+[debug] [2025-12-31T01:53:48.569Z] Got response from /__/functions.yaml {"endpoints":{"setUserRole":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"setUserRole"},"listAllUsers":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"listAllUsers"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] ✔  functions: Loaded functions definitions from source: setUserRole, listAllUsers. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: setUserRole, listAllUsers."}}
+[info] ✔  functions[us-central1-setUserRole]: http function initialized (http://127.0.0.1:5001/paperless-events/us-central1/setUserRole). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/paperless-events/us-central1/setUserRole)."}}
+[info] ✔  functions[us-central1-listAllUsers]: http function initialized (http://127.0.0.1:5001/paperless-events/us-central1/listAllUsers). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/paperless-events/us-central1/listAllUsers)."}}
+[debug] [2025-12-31T01:53:52.594Z] Could not find VSCode notification endpoint: FetchError: request to http://localhost:40001/vscode/notify failed, reason: . If you are not running the Firebase Data Connect VSCode extension, this is expected and not an issue.
+[info] 
+┌─────────────────────────────────────────────────────────────┐
+│ ✔  All emulators ready! It is now safe to connect your app. │
+│ i  View Emulator UI at http://127.0.0.1:4000/               │
+└─────────────────────────────────────────────────────────────┘
+
+┌───────────┬────────────────┬─────────────────────────────────┐
+│ Emulator  │ Host:Port      │ View in Emulator UI             │
+├───────────┼────────────────┼─────────────────────────────────┤
+│ Functions │ 127.0.0.1:5001 │ http://127.0.0.1:4000/functions │
+└───────────┴────────────────┴─────────────────────────────────┘
+  Emulator Hub host: 127.0.0.1 port: 4400
+  Other reserved ports: 4500
+
+Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
+ 
+[debug] [2025-12-31T01:55:31.292Z] File /Users/chhuong/paperless-event/functions/lib/index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/chhuong/paperless-event/functions/lib/index.js changed, reloading triggers"}}
+[debug] [2025-12-31T01:55:31.295Z] File /Users/chhuong/paperless-event/functions/lib/index.js.map changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/chhuong/paperless-event/functions/lib/index.js.map changed, reloading triggers"}}
+[debug] [2025-12-31T01:55:32.297Z] Validating nodejs source
+[debug] [2025-12-31T01:55:32.860Z] > [functions] package.json contents: {
+  "name": "functions",
+  "scripts": {
+    "lint": "eslint .",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "24"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "firebase-admin": "^13.6.0",
+    "firebase-functions": "^7.0.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.12.0",
+    "@typescript-eslint/parser": "^5.12.0",
+    "eslint": "^8.9.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-import": "^2.25.4",
+    "firebase-functions-test": "^3.4.1",
+    "typescript": "^5.7.3"
+  },
+  "private": true
+}
+[debug] [2025-12-31T01:55:32.860Z] Building nodejs source
+[debug] [2025-12-31T01:55:32.860Z] Failed to find version of module node: reached end of search path /Users/chhuong/paperless-event/functions/node_modules
+[info] ✔  functions: Using node@24 from host. 
+[debug] [2025-12-31T01:55:32.861Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-12-31T01:55:32.862Z] Found firebase-functions binary at '/Users/chhuong/paperless-event/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8678
+
+[debug] [2025-12-31T01:55:33.121Z] Got response from /__/functions.yaml {"endpoints":{"setUserRole":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"setUserRole"},"listAllUsers":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"listAllUsers"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] ✔  functions: Loaded functions definitions from source: setUserRole, listAllUsers. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: setUserRole, listAllUsers."}}
+[debug] [2025-12-31T02:00:21.221Z] File /Users/chhuong/paperless-event/functions/lib/index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/chhuong/paperless-event/functions/lib/index.js changed, reloading triggers"}}
+[debug] [2025-12-31T02:00:21.246Z] File /Users/chhuong/paperless-event/functions/lib/index.js.map changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/chhuong/paperless-event/functions/lib/index.js.map changed, reloading triggers"}}
+[debug] [2025-12-31T02:00:22.257Z] Validating nodejs source
+[debug] [2025-12-31T02:00:22.794Z] > [functions] package.json contents: {
+  "name": "functions",
+  "scripts": {
+    "lint": "eslint .",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "24"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "firebase-admin": "^13.6.0",
+    "firebase-functions": "^7.0.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.12.0",
+    "@typescript-eslint/parser": "^5.12.0",
+    "eslint": "^8.9.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-import": "^2.25.4",
+    "firebase-functions-test": "^3.4.1",
+    "typescript": "^5.7.3"
+  },
+  "private": true
+}
+[debug] [2025-12-31T02:00:22.794Z] Building nodejs source
+[debug] [2025-12-31T02:00:22.794Z] Failed to find version of module node: reached end of search path /Users/chhuong/paperless-event/functions/node_modules
+[info] ✔  functions: Using node@24 from host. 
+[debug] [2025-12-31T02:00:22.799Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-12-31T02:00:22.801Z] Found firebase-functions binary at '/Users/chhuong/paperless-event/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8401
+
+[debug] [2025-12-31T02:00:23.062Z] Got response from /__/functions.yaml {"endpoints":{"setUserRole":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"setUserRole"},"listAllUsers":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"listAllUsers"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] ✔  functions: Loaded functions definitions from source: setUserRole, listAllUsers. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: setUserRole, listAllUsers."}}
+[debug] [2025-12-31T02:00:54.579Z] File /Users/chhuong/paperless-event/functions/src/index.ts changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/chhuong/paperless-event/functions/src/index.ts changed, reloading triggers"}}
+[debug] [2025-12-31T02:00:55.583Z] Validating nodejs source
+[debug] [2025-12-31T02:00:56.346Z] > [functions] package.json contents: {
+  "name": "functions",
+  "scripts": {
+    "lint": "eslint .",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "24"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "firebase-admin": "^13.6.0",
+    "firebase-functions": "^7.0.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.12.0",
+    "@typescript-eslint/parser": "^5.12.0",
+    "eslint": "^8.9.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-import": "^2.25.4",
+    "firebase-functions-test": "^3.4.1",
+    "typescript": "^5.7.3"
+  },
+  "private": true
+}
+[debug] [2025-12-31T02:00:56.346Z] Building nodejs source
+[debug] [2025-12-31T02:00:56.346Z] Failed to find version of module node: reached end of search path /Users/chhuong/paperless-event/functions/node_modules
+[info] ✔  functions: Using node@24 from host. 
+[debug] [2025-12-31T02:00:56.347Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-12-31T02:00:56.348Z] Found firebase-functions binary at '/Users/chhuong/paperless-event/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8824
+
+[debug] [2025-12-31T02:00:56.594Z] Got response from /__/functions.yaml {"endpoints":{"setUserRole":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"setUserRole"},"listAllUsers":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"listAllUsers"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] ✔  functions: Loaded functions definitions from source: setUserRole, listAllUsers. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: setUserRole, listAllUsers."}}
+[debug] [2025-12-31T02:01:05.132Z] File /Users/chhuong/paperless-event/functions/lib/index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/chhuong/paperless-event/functions/lib/index.js changed, reloading triggers"}}
+[debug] [2025-12-31T02:01:05.133Z] File /Users/chhuong/paperless-event/functions/lib/index.js.map changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/chhuong/paperless-event/functions/lib/index.js.map changed, reloading triggers"}}
+[debug] [2025-12-31T02:01:06.136Z] Validating nodejs source
+[debug] [2025-12-31T02:01:06.682Z] > [functions] package.json contents: {
+  "name": "functions",
+  "scripts": {
+    "lint": "eslint .",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "24"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "firebase-admin": "^13.6.0",
+    "firebase-functions": "^7.0.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.12.0",
+    "@typescript-eslint/parser": "^5.12.0",
+    "eslint": "^8.9.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-import": "^2.25.4",
+    "firebase-functions-test": "^3.4.1",
+    "typescript": "^5.7.3"
+  },
+  "private": true
+}
+[debug] [2025-12-31T02:01:06.682Z] Building nodejs source
+[debug] [2025-12-31T02:01:06.682Z] Failed to find version of module node: reached end of search path /Users/chhuong/paperless-event/functions/node_modules
+[info] ✔  functions: Using node@24 from host. 
+[debug] [2025-12-31T02:01:06.686Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-12-31T02:01:06.687Z] Found firebase-functions binary at '/Users/chhuong/paperless-event/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8564
+
+[debug] [2025-12-31T02:01:06.923Z] Got response from /__/functions.yaml {"endpoints":{"setUserRole":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"setUserRole"},"listAllUsers":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"listAllUsers"},"createUser":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"createUser"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] ✔  functions: Loaded functions definitions from source: setUserRole, listAllUsers, createUser. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: setUserRole, listAllUsers, createUser."}}
+[info] ✔  functions[us-central1-createUser]: http function initialized (http://127.0.0.1:5001/paperless-events/us-central1/createUser). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/paperless-events/us-central1/createUser)."}}
+[debug] [2025-12-31T02:01:26.650Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:01:26.646Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:01:26.657Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:01:26.646Z"],"workRunningCount":1}
+[debug] [2025-12-31T02:01:26.658Z] Accepted request OPTIONS /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2025-12-31T02:01:26.670Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-12-31T02:01:26.671Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2025-12-31T02:01:26.677Z] [worker-pool] addWorker(us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] addWorker(us-central1-listAllUsers)"}}
+[debug] [2025-12-31T02:01:26.677Z] [worker-pool] Adding worker with key us-central1-listAllUsers, total=1 {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Adding worker with key us-central1-listAllUsers, total=1"}}
+[debug] [2025-12-31T02:01:27.382Z] [runtime-status] [55497] Resolved module firebase-admin {"declared":true,"installed":true,"version":"13.6.0","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [55497] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"13.6.0\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js\"}"}}
+[debug] [2025-12-31T02:01:27.382Z] [runtime-status] [55497] Resolved module firebase-functions {"declared":true,"installed":true,"version":"7.0.2","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [55497] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"7.0.2\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-12-31T02:01:27.383Z] [runtime-status] [55497] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"}] {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [55497] Outgoing network have been stubbed. [{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"net\",\"status\":\"mocked\"}]"}}
+[debug] [2025-12-31T02:01:27.383Z] [runtime-status] [55497] Resolved module firebase-functions {"declared":true,"installed":true,"version":"7.0.2","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [55497] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"7.0.2\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-12-31T02:01:27.383Z] [runtime-status] [55497] Detected firebase-functions v7+, skipping legacy stubs. {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [55497] Detected firebase-functions v7+, skipping legacy stubs."}}
+[debug] [2025-12-31T02:01:27.383Z] [runtime-status] [55497] Resolved module firebase-admin {"declared":true,"installed":true,"version":"13.6.0","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [55497] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"13.6.0\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js\"}"}}
+[debug] [2025-12-31T02:01:27.423Z] [runtime-status] [55497] Resolved module firebase-functions {"declared":true,"installed":true,"version":"7.0.2","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [55497] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"7.0.2\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-12-31T02:01:27.605Z] [runtime-status] [55497] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"13.6.0","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [55497] firebase-admin has been stubbed. {\"adminResolution\":{\"declared\":true,\"installed\":true,\"version\":\"13.6.0\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js\"}}"}}
+[debug] [2025-12-31T02:01:27.606Z] [runtime-status] [55497] initializeApp(DEFAULT) {"storageBucket":"paperless-events.firebasestorage.app","projectId":"paperless-events"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [55497] initializeApp(DEFAULT) {\"storageBucket\":\"paperless-events.firebasestorage.app\",\"projectId\":\"paperless-events\"}"}}
+[debug] [2025-12-31T02:01:27.608Z] [runtime-status] [55497] Functions runtime initialized. {"cwd":"/Users/chhuong/paperless-event/functions","node_version":"24.6.0"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [55497] Functions runtime initialized. {\"cwd\":\"/Users/chhuong/paperless-event/functions\",\"node_version\":\"24.6.0\"}"}}
+[debug] [2025-12-31T02:01:27.609Z] [runtime-status] [55497] Listening to port: /var/folders/6s/mnkjjbz916x4scbl5my9ss1r0000gn/T/fire_emu_a8a5a9d5bba6f376.sock {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [55497] Listening to port: /var/folders/6s/mnkjjbz916x4scbl5my9ss1r0000gn/T/fire_emu_a8a5a9d5bba6f376.sock"}}
+[debug] [2025-12-31T02:01:27.693Z] [worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: IDLE"}}
+[debug] [2025-12-31T02:01:27.694Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2025-12-31T02:01:27.694Z] [worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: BUSY"}}
+[debug] [2025-12-31T02:01:27.697Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 2.858583ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 2.858583ms"}}
+[debug] [2025-12-31T02:01:27.697Z] [worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: IDLE"}}
+[debug] [2025-12-31T02:01:27.697Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-12-31T02:01:27.697Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-12-31T02:01:27.697Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:01:27.698Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:01:27.698Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:01:27.698Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:01:27.698Z"],"workRunningCount":1}
+[debug] [2025-12-31T02:01:27.698Z] Accepted request POST /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2025-12-31T02:01:27.698Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-12-31T02:01:27.698Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2025-12-31T02:01:27.699Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2025-12-31T02:01:27.699Z] [worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: BUSY"}}
+[info] >  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"} {"user":{"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"verifications\":{\"app\":\"MISSING\",\"auth\":\"VALID\"},\"logging.googleapis.com/labels\":{\"firebase-log-type\":\"callable-request-verification\"},\"severity\":\"DEBUG\",\"message\":\"Callable request verification passed\"}"}}
+[warn] ⚠  functions: The Firebase Authentication emulator is not running, so calls to Firebase Authentication will affect production. {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"The Firebase Authentication emulator is not running, so calls to Firebase Authentication will affect production."}}
+[warn] ⚠  Google API requested!
+   - URL: "https://oauth2.googleapis.com/token"
+   - Be careful, this may be a production service. {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Google API requested!\n   - URL: \"https://oauth2.googleapis.com/token\"\n   - Be careful, this may be a production service."}}
+[debug] [2025-12-31T02:01:29.705Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 2006.641167ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 2006.641167ms"}}
+[debug] [2025-12-31T02:01:29.706Z] [worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: IDLE"}}
+[debug] [2025-12-31T02:01:29.706Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-12-31T02:01:29.706Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-12-31T02:01:29.706Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:01:44.025Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/createUser-2025-12-31T02:01:44.024Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:01:44.026Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/createUser-2025-12-31T02:01:44.024Z"],"workRunningCount":1}
+[debug] [2025-12-31T02:01:44.027Z] Accepted request OPTIONS /paperless-events/us-central1/createUser --> us-central1-createUser
+[debug] [2025-12-31T02:01:44.033Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-12-31T02:01:44.034Z] [functions] Got req.url=/paperless-events/us-central1/createUser, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/createUser, mapping to path=/"}}
+[debug] [2025-12-31T02:01:44.048Z] [worker-pool] addWorker(us-central1-createUser) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] addWorker(us-central1-createUser)"}}
+[debug] [2025-12-31T02:01:44.049Z] [worker-pool] Adding worker with key us-central1-createUser, total=1 {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Adding worker with key us-central1-createUser, total=1"}}
+[debug] [2025-12-31T02:01:44.652Z] [runtime-status] [55552] Resolved module firebase-admin {"declared":true,"installed":true,"version":"13.6.0","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"[runtime-status] [55552] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"13.6.0\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js\"}"}}
+[debug] [2025-12-31T02:01:44.653Z] [runtime-status] [55552] Resolved module firebase-functions {"declared":true,"installed":true,"version":"7.0.2","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"[runtime-status] [55552] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"7.0.2\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-12-31T02:01:44.653Z] [runtime-status] [55552] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"}] {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"[runtime-status] [55552] Outgoing network have been stubbed. [{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"net\",\"status\":\"mocked\"}]"}}
+[debug] [2025-12-31T02:01:44.653Z] [runtime-status] [55552] Resolved module firebase-functions {"declared":true,"installed":true,"version":"7.0.2","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"[runtime-status] [55552] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"7.0.2\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-12-31T02:01:44.653Z] [runtime-status] [55552] Detected firebase-functions v7+, skipping legacy stubs. {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"[runtime-status] [55552] Detected firebase-functions v7+, skipping legacy stubs."}}
+[debug] [2025-12-31T02:01:44.654Z] [runtime-status] [55552] Resolved module firebase-admin {"declared":true,"installed":true,"version":"13.6.0","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"[runtime-status] [55552] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"13.6.0\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js\"}"}}
+[debug] [2025-12-31T02:01:44.710Z] [runtime-status] [55552] Resolved module firebase-functions {"declared":true,"installed":true,"version":"7.0.2","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"[runtime-status] [55552] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"7.0.2\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-12-31T02:01:44.861Z] [runtime-status] [55552] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"13.6.0","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"[runtime-status] [55552] firebase-admin has been stubbed. {\"adminResolution\":{\"declared\":true,\"installed\":true,\"version\":\"13.6.0\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js\"}}"}}
+[debug] [2025-12-31T02:01:44.862Z] [runtime-status] [55552] initializeApp(DEFAULT) {"storageBucket":"paperless-events.firebasestorage.app","projectId":"paperless-events"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"[runtime-status] [55552] initializeApp(DEFAULT) {\"storageBucket\":\"paperless-events.firebasestorage.app\",\"projectId\":\"paperless-events\"}"}}
+[debug] [2025-12-31T02:01:44.865Z] [runtime-status] [55552] Functions runtime initialized. {"cwd":"/Users/chhuong/paperless-event/functions","node_version":"24.6.0"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"[runtime-status] [55552] Functions runtime initialized. {\"cwd\":\"/Users/chhuong/paperless-event/functions\",\"node_version\":\"24.6.0\"}"}}
+[debug] [2025-12-31T02:01:44.865Z] [runtime-status] [55552] Listening to port: /var/folders/6s/mnkjjbz916x4scbl5my9ss1r0000gn/T/fire_emu_a5f83907786f19cc.sock {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"[runtime-status] [55552] Listening to port: /var/folders/6s/mnkjjbz916x4scbl5my9ss1r0000gn/T/fire_emu_a5f83907786f19cc.sock"}}
+[debug] [2025-12-31T02:01:44.962Z] [worker-us-central1-createUser-c2f006c5-ff34-4bd0-872c-cf0e626e6b84]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"[worker-us-central1-createUser-c2f006c5-ff34-4bd0-872c-cf0e626e6b84]: IDLE"}}
+[debug] [2025-12-31T02:01:44.963Z] [worker-pool] submitRequest(triggerId=us-central1-createUser) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-createUser)"}}
+[info] i  functions: Beginning execution of "us-central1-createUser" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"Beginning execution of \"us-central1-createUser\""}}
+[debug] [2025-12-31T02:01:44.963Z] [worker-us-central1-createUser-c2f006c5-ff34-4bd0-872c-cf0e626e6b84]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"[worker-us-central1-createUser-c2f006c5-ff34-4bd0-872c-cf0e626e6b84]: BUSY"}}
+[debug] [2025-12-31T02:01:44.965Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-createUser" in 1.663834ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"Finished \"us-central1-createUser\" in 1.663834ms"}}
+[debug] [2025-12-31T02:01:44.965Z] [worker-us-central1-createUser-c2f006c5-ff34-4bd0-872c-cf0e626e6b84]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"[worker-us-central1-createUser-c2f006c5-ff34-4bd0-872c-cf0e626e6b84]: IDLE"}}
+[debug] [2025-12-31T02:01:44.965Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-12-31T02:01:44.965Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-12-31T02:01:44.965Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:01:44.969Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/createUser-2025-12-31T02:01:44.969Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:01:44.969Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/createUser-2025-12-31T02:01:44.969Z"],"workRunningCount":1}
+[debug] [2025-12-31T02:01:44.969Z] Accepted request POST /paperless-events/us-central1/createUser --> us-central1-createUser
+[debug] [2025-12-31T02:01:44.970Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-12-31T02:01:44.970Z] [functions] Got req.url=/paperless-events/us-central1/createUser, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/createUser, mapping to path=/"}}
+[debug] [2025-12-31T02:01:44.970Z] [worker-pool] submitRequest(triggerId=us-central1-createUser) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-createUser)"}}
+[info] i  functions: Beginning execution of "us-central1-createUser" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"Beginning execution of \"us-central1-createUser\""}}
+[debug] [2025-12-31T02:01:44.970Z] [worker-us-central1-createUser-c2f006c5-ff34-4bd0-872c-cf0e626e6b84]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"[worker-us-central1-createUser-c2f006c5-ff34-4bd0-872c-cf0e626e6b84]: BUSY"}}
+[info] >  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"} {"user":{"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"verifications\":{\"app\":\"MISSING\",\"auth\":\"VALID\"},\"logging.googleapis.com/labels\":{\"firebase-log-type\":\"callable-request-verification\"},\"severity\":\"DEBUG\",\"message\":\"Callable request verification passed\"}"}}
+[warn] ⚠  Google API requested!
+   - URL: "https://oauth2.googleapis.com/token"
+   - Be careful, this may be a production service. {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"Google API requested!\n   - URL: \"https://oauth2.googleapis.com/token\"\n   - Be careful, this may be a production service."}}
+[debug] [2025-12-31T02:01:47.688Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-createUser" in 2718.425541ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"Finished \"us-central1-createUser\" in 2718.425541ms"}}
+[debug] [2025-12-31T02:01:47.690Z] [worker-us-central1-createUser-c2f006c5-ff34-4bd0-872c-cf0e626e6b84]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"[worker-us-central1-createUser-c2f006c5-ff34-4bd0-872c-cf0e626e6b84]: IDLE"}}
+[debug] [2025-12-31T02:01:47.690Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-12-31T02:01:47.690Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-12-31T02:01:47.690Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:01:47.697Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:01:47.697Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:01:47.698Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:01:47.697Z"],"workRunningCount":1}
+[debug] [2025-12-31T02:01:47.698Z] Accepted request OPTIONS /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2025-12-31T02:01:47.699Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-12-31T02:01:47.699Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2025-12-31T02:01:47.699Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2025-12-31T02:01:47.699Z] [worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: BUSY"}}
+[debug] [2025-12-31T02:01:47.716Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 17.622875ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 17.622875ms"}}
+[debug] [2025-12-31T02:01:47.717Z] [worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: IDLE"}}
+[debug] [2025-12-31T02:01:47.717Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-12-31T02:01:47.717Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-12-31T02:01:47.717Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:01:47.717Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:01:47.717Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:01:47.717Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:01:47.717Z"],"workRunningCount":1}
+[debug] [2025-12-31T02:01:47.717Z] Accepted request POST /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2025-12-31T02:01:47.720Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-12-31T02:01:47.720Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2025-12-31T02:01:47.720Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2025-12-31T02:01:47.720Z] [worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: BUSY"}}
+[info] >  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"} {"user":{"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"verifications\":{\"app\":\"MISSING\",\"auth\":\"VALID\"},\"logging.googleapis.com/labels\":{\"firebase-log-type\":\"callable-request-verification\"},\"severity\":\"DEBUG\",\"message\":\"Callable request verification passed\"}"}}
+[debug] [2025-12-31T02:01:49.094Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 1374.556292ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 1374.556292ms"}}
+[debug] [2025-12-31T02:01:49.095Z] [worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: IDLE"}}
+[debug] [2025-12-31T02:01:49.095Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-12-31T02:01:49.095Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-12-31T02:01:49.096Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:01:56.000Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/deleteUser-2025-12-31T02:01:56.000Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:01:56.004Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/deleteUser-2025-12-31T02:01:56.000Z"],"workRunningCount":1}
+[debug] [2025-12-31T02:01:56.016Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:02:47.162Z] File /Users/chhuong/paperless-event/functions/src/index.ts changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/chhuong/paperless-event/functions/src/index.ts changed, reloading triggers"}}
+[debug] [2025-12-31T02:02:48.166Z] Validating nodejs source
+[debug] [2025-12-31T02:02:48.884Z] > [functions] package.json contents: {
+  "name": "functions",
+  "scripts": {
+    "lint": "eslint .",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "24"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "firebase-admin": "^13.6.0",
+    "firebase-functions": "^7.0.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.12.0",
+    "@typescript-eslint/parser": "^5.12.0",
+    "eslint": "^8.9.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-import": "^2.25.4",
+    "firebase-functions-test": "^3.4.1",
+    "typescript": "^5.7.3"
+  },
+  "private": true
+}
+[debug] [2025-12-31T02:02:48.884Z] Building nodejs source
+[debug] [2025-12-31T02:02:48.884Z] Failed to find version of module node: reached end of search path /Users/chhuong/paperless-event/functions/node_modules
+[info] ✔  functions: Using node@24 from host. 
+[debug] [2025-12-31T02:02:48.885Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-12-31T02:02:48.886Z] Found firebase-functions binary at '/Users/chhuong/paperless-event/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8628
+
+[debug] [2025-12-31T02:02:49.229Z] Got response from /__/functions.yaml {"endpoints":{"setUserRole":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"setUserRole"},"listAllUsers":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"listAllUsers"},"createUser":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"createUser"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] ✔  functions: Loaded functions definitions from source: setUserRole, listAllUsers, createUser. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: setUserRole, listAllUsers, createUser."}}
+[debug] [2025-12-31T02:02:53.251Z] [worker-pool] Shutting down IDLE worker (us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Shutting down IDLE worker (us-central1-listAllUsers)"}}
+[debug] [2025-12-31T02:02:53.252Z] [worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: FINISHING {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: FINISHING"}}
+[debug] [2025-12-31T02:02:53.252Z] [worker-pool] Shutting down IDLE worker (us-central1-createUser) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Shutting down IDLE worker (us-central1-createUser)"}}
+[debug] [2025-12-31T02:02:53.252Z] [worker-us-central1-createUser-c2f006c5-ff34-4bd0-872c-cf0e626e6b84]: FINISHING {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"[worker-us-central1-createUser-c2f006c5-ff34-4bd0-872c-cf0e626e6b84]: FINISHING"}}
+[debug] [2025-12-31T02:02:53.267Z] [worker-us-central1-createUser-c2f006c5-ff34-4bd0-872c-cf0e626e6b84]: exited {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"[worker-us-central1-createUser-c2f006c5-ff34-4bd0-872c-cf0e626e6b84]: exited"}}
+[debug] [2025-12-31T02:02:53.267Z] [worker-us-central1-createUser-c2f006c5-ff34-4bd0-872c-cf0e626e6b84]: FINISHED {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-createUser"},"extension":{},"message":"[worker-us-central1-createUser-c2f006c5-ff34-4bd0-872c-cf0e626e6b84]: FINISHED"}}
+[debug] [2025-12-31T02:02:53.267Z] [worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: exited {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: exited"}}
+[debug] [2025-12-31T02:02:53.267Z] [worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: FINISHED {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-75a93dfb-0a9a-466b-8522-5e2e8599655b]: FINISHED"}}
+[debug] [2025-12-31T02:03:10.186Z] File /Users/chhuong/paperless-event/functions/lib/index.js.map changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/chhuong/paperless-event/functions/lib/index.js.map changed, reloading triggers"}}
+[debug] [2025-12-31T02:03:10.187Z] File /Users/chhuong/paperless-event/functions/lib/index.js changed, reloading triggers {"metadata":{"emulator":{"name":"functions"},"message":"File /Users/chhuong/paperless-event/functions/lib/index.js changed, reloading triggers"}}
+[debug] [2025-12-31T02:03:11.197Z] Validating nodejs source
+[debug] [2025-12-31T02:03:11.781Z] > [functions] package.json contents: {
+  "name": "functions",
+  "scripts": {
+    "lint": "eslint .",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "24"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "firebase-admin": "^13.6.0",
+    "firebase-functions": "^7.0.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.12.0",
+    "@typescript-eslint/parser": "^5.12.0",
+    "eslint": "^8.9.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-import": "^2.25.4",
+    "firebase-functions-test": "^3.4.1",
+    "typescript": "^5.7.3"
+  },
+  "private": true
+}
+[debug] [2025-12-31T02:03:11.781Z] Building nodejs source
+[debug] [2025-12-31T02:03:11.781Z] Failed to find version of module node: reached end of search path /Users/chhuong/paperless-event/functions/node_modules
+[info] ✔  functions: Using node@24 from host. 
+[debug] [2025-12-31T02:03:11.782Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-12-31T02:03:11.783Z] Found firebase-functions binary at '/Users/chhuong/paperless-event/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8512
+
+[debug] [2025-12-31T02:03:12.039Z] Got response from /__/functions.yaml {"endpoints":{"setUserRole":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"setUserRole"},"listAllUsers":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"listAllUsers"},"createUser":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"createUser"},"deleteUser":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"deleteUser"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] ✔  functions: Loaded functions definitions from source: setUserRole, listAllUsers, createUser, deleteUser. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: setUserRole, listAllUsers, createUser, deleteUser."}}
+[info] ✔  functions[us-central1-deleteUser]: http function initialized (http://127.0.0.1:5001/paperless-events/us-central1/deleteUser). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/paperless-events/us-central1/deleteUser)."}}
+[debug] [2025-12-31T02:03:18.941Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/deleteUser-2025-12-31T02:03:18.941Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:03:18.942Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/deleteUser-2025-12-31T02:03:18.941Z"],"workRunningCount":1}
+[debug] [2025-12-31T02:03:18.942Z] Accepted request OPTIONS /paperless-events/us-central1/deleteUser --> us-central1-deleteUser
+[debug] [2025-12-31T02:03:18.944Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-12-31T02:03:18.945Z] [functions] Got req.url=/paperless-events/us-central1/deleteUser, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/deleteUser, mapping to path=/"}}
+[debug] [2025-12-31T02:03:18.945Z] [worker-pool] Cleaned up workers for us-central1-listAllUsers: 1 --> 0 {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Cleaned up workers for us-central1-listAllUsers: 1 --> 0"}}
+[debug] [2025-12-31T02:03:18.945Z] [worker-pool] Cleaned up workers for us-central1-createUser: 1 --> 0 {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Cleaned up workers for us-central1-createUser: 1 --> 0"}}
+[debug] [2025-12-31T02:03:18.946Z] [worker-pool] addWorker(us-central1-deleteUser) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] addWorker(us-central1-deleteUser)"}}
+[debug] [2025-12-31T02:03:18.946Z] [worker-pool] Adding worker with key us-central1-deleteUser, total=1 {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Adding worker with key us-central1-deleteUser, total=1"}}
+[debug] [2025-12-31T02:03:19.606Z] [runtime-status] [55916] Resolved module firebase-admin {"declared":true,"installed":true,"version":"13.6.0","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"[runtime-status] [55916] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"13.6.0\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js\"}"}}
+[debug] [2025-12-31T02:03:19.607Z] [runtime-status] [55916] Resolved module firebase-functions {"declared":true,"installed":true,"version":"7.0.2","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"[runtime-status] [55916] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"7.0.2\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-12-31T02:03:19.607Z] [runtime-status] [55916] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"}] {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"[runtime-status] [55916] Outgoing network have been stubbed. [{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"net\",\"status\":\"mocked\"}]"}}
+[debug] [2025-12-31T02:03:19.607Z] [runtime-status] [55916] Resolved module firebase-functions {"declared":true,"installed":true,"version":"7.0.2","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"[runtime-status] [55916] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"7.0.2\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-12-31T02:03:19.608Z] [runtime-status] [55916] Detected firebase-functions v7+, skipping legacy stubs. {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"[runtime-status] [55916] Detected firebase-functions v7+, skipping legacy stubs."}}
+[debug] [2025-12-31T02:03:19.608Z] [runtime-status] [55916] Resolved module firebase-admin {"declared":true,"installed":true,"version":"13.6.0","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"[runtime-status] [55916] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"13.6.0\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js\"}"}}
+[debug] [2025-12-31T02:03:19.648Z] [runtime-status] [55916] Resolved module firebase-functions {"declared":true,"installed":true,"version":"7.0.2","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"[runtime-status] [55916] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"7.0.2\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-12-31T02:03:19.805Z] [runtime-status] [55916] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"13.6.0","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"[runtime-status] [55916] firebase-admin has been stubbed. {\"adminResolution\":{\"declared\":true,\"installed\":true,\"version\":\"13.6.0\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js\"}}"}}
+[debug] [2025-12-31T02:03:19.806Z] [runtime-status] [55916] initializeApp(DEFAULT) {"storageBucket":"paperless-events.firebasestorage.app","projectId":"paperless-events"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"[runtime-status] [55916] initializeApp(DEFAULT) {\"storageBucket\":\"paperless-events.firebasestorage.app\",\"projectId\":\"paperless-events\"}"}}
+[debug] [2025-12-31T02:03:19.808Z] [runtime-status] [55916] Functions runtime initialized. {"cwd":"/Users/chhuong/paperless-event/functions","node_version":"24.6.0"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"[runtime-status] [55916] Functions runtime initialized. {\"cwd\":\"/Users/chhuong/paperless-event/functions\",\"node_version\":\"24.6.0\"}"}}
+[debug] [2025-12-31T02:03:19.809Z] [runtime-status] [55916] Listening to port: /var/folders/6s/mnkjjbz916x4scbl5my9ss1r0000gn/T/fire_emu_8b5f23f808a5d496.sock {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"[runtime-status] [55916] Listening to port: /var/folders/6s/mnkjjbz916x4scbl5my9ss1r0000gn/T/fire_emu_8b5f23f808a5d496.sock"}}
+[debug] [2025-12-31T02:03:19.860Z] [worker-us-central1-deleteUser-bcbe6d5c-23ee-4eab-87b8-589b49a18b72]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"[worker-us-central1-deleteUser-bcbe6d5c-23ee-4eab-87b8-589b49a18b72]: IDLE"}}
+[debug] [2025-12-31T02:03:19.860Z] [worker-pool] submitRequest(triggerId=us-central1-deleteUser) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-deleteUser)"}}
+[info] i  functions: Beginning execution of "us-central1-deleteUser" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"Beginning execution of \"us-central1-deleteUser\""}}
+[debug] [2025-12-31T02:03:19.860Z] [worker-us-central1-deleteUser-bcbe6d5c-23ee-4eab-87b8-589b49a18b72]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"[worker-us-central1-deleteUser-bcbe6d5c-23ee-4eab-87b8-589b49a18b72]: BUSY"}}
+[debug] [2025-12-31T02:03:19.862Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-deleteUser" in 1.779541ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"Finished \"us-central1-deleteUser\" in 1.779541ms"}}
+[debug] [2025-12-31T02:03:19.862Z] [worker-us-central1-deleteUser-bcbe6d5c-23ee-4eab-87b8-589b49a18b72]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"[worker-us-central1-deleteUser-bcbe6d5c-23ee-4eab-87b8-589b49a18b72]: IDLE"}}
+[debug] [2025-12-31T02:03:19.862Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-12-31T02:03:19.862Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-12-31T02:03:19.862Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:03:19.867Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/deleteUser-2025-12-31T02:03:19.867Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:03:19.867Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/deleteUser-2025-12-31T02:03:19.867Z"],"workRunningCount":1}
+[debug] [2025-12-31T02:03:19.867Z] Accepted request POST /paperless-events/us-central1/deleteUser --> us-central1-deleteUser
+[debug] [2025-12-31T02:03:19.868Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-12-31T02:03:19.868Z] [functions] Got req.url=/paperless-events/us-central1/deleteUser, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/deleteUser, mapping to path=/"}}
+[debug] [2025-12-31T02:03:19.868Z] [worker-pool] submitRequest(triggerId=us-central1-deleteUser) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-deleteUser)"}}
+[info] i  functions: Beginning execution of "us-central1-deleteUser" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"Beginning execution of \"us-central1-deleteUser\""}}
+[debug] [2025-12-31T02:03:19.868Z] [worker-us-central1-deleteUser-bcbe6d5c-23ee-4eab-87b8-589b49a18b72]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"[worker-us-central1-deleteUser-bcbe6d5c-23ee-4eab-87b8-589b49a18b72]: BUSY"}}
+[info] >  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"} {"user":{"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"verifications\":{\"app\":\"MISSING\",\"auth\":\"VALID\"},\"logging.googleapis.com/labels\":{\"firebase-log-type\":\"callable-request-verification\"},\"severity\":\"DEBUG\",\"message\":\"Callable request verification passed\"}"}}
+[warn] ⚠  Google API requested!
+   - URL: "https://oauth2.googleapis.com/token"
+   - Be careful, this may be a production service. {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"Google API requested!\n   - URL: \"https://oauth2.googleapis.com/token\"\n   - Be careful, this may be a production service."}}
+[debug] [2025-12-31T02:03:21.957Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-deleteUser" in 2089.250916ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"Finished \"us-central1-deleteUser\" in 2089.250916ms"}}
+[debug] [2025-12-31T02:03:21.957Z] [worker-us-central1-deleteUser-bcbe6d5c-23ee-4eab-87b8-589b49a18b72]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"[worker-us-central1-deleteUser-bcbe6d5c-23ee-4eab-87b8-589b49a18b72]: IDLE"}}
+[debug] [2025-12-31T02:03:21.958Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-12-31T02:03:21.958Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-deleteUser"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-12-31T02:03:21.958Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:04:21.764Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:04:21.764Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:04:21.766Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:04:21.764Z"],"workRunningCount":1}
+[debug] [2025-12-31T02:04:21.766Z] Accepted request OPTIONS /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2025-12-31T02:04:21.770Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-12-31T02:04:21.770Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2025-12-31T02:04:21.776Z] [worker-pool] addWorker(us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] addWorker(us-central1-listAllUsers)"}}
+[debug] [2025-12-31T02:04:21.776Z] [worker-pool] Adding worker with key us-central1-listAllUsers, total=1 {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Adding worker with key us-central1-listAllUsers, total=1"}}
+[debug] [2025-12-31T02:04:22.450Z] [runtime-status] [56118] Resolved module firebase-admin {"declared":true,"installed":true,"version":"13.6.0","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [56118] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"13.6.0\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js\"}"}}
+[debug] [2025-12-31T02:04:22.450Z] [runtime-status] [56118] Resolved module firebase-functions {"declared":true,"installed":true,"version":"7.0.2","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [56118] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"7.0.2\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-12-31T02:04:22.450Z] [runtime-status] [56118] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"}] {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [56118] Outgoing network have been stubbed. [{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"net\",\"status\":\"mocked\"}]"}}
+[debug] [2025-12-31T02:04:22.450Z] [runtime-status] [56118] Resolved module firebase-functions {"declared":true,"installed":true,"version":"7.0.2","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [56118] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"7.0.2\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-12-31T02:04:22.451Z] [runtime-status] [56118] Detected firebase-functions v7+, skipping legacy stubs. {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [56118] Detected firebase-functions v7+, skipping legacy stubs."}}
+[debug] [2025-12-31T02:04:22.451Z] [runtime-status] [56118] Resolved module firebase-admin {"declared":true,"installed":true,"version":"13.6.0","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [56118] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"13.6.0\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js\"}"}}
+[debug] [2025-12-31T02:04:22.515Z] [runtime-status] [56118] Resolved module firebase-functions {"declared":true,"installed":true,"version":"7.0.2","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [56118] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"7.0.2\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-functions/lib/v2/index.js\"}"}}
+[debug] [2025-12-31T02:04:22.713Z] [runtime-status] [56118] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"13.6.0","resolution":"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [56118] firebase-admin has been stubbed. {\"adminResolution\":{\"declared\":true,\"installed\":true,\"version\":\"13.6.0\",\"resolution\":\"/Users/chhuong/paperless-event/functions/node_modules/firebase-admin/lib/index.js\"}}"}}
+[debug] [2025-12-31T02:04:22.714Z] [runtime-status] [56118] initializeApp(DEFAULT) {"storageBucket":"paperless-events.firebasestorage.app","projectId":"paperless-events"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [56118] initializeApp(DEFAULT) {\"storageBucket\":\"paperless-events.firebasestorage.app\",\"projectId\":\"paperless-events\"}"}}
+[debug] [2025-12-31T02:04:22.717Z] [runtime-status] [56118] Functions runtime initialized. {"cwd":"/Users/chhuong/paperless-event/functions","node_version":"24.6.0"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [56118] Functions runtime initialized. {\"cwd\":\"/Users/chhuong/paperless-event/functions\",\"node_version\":\"24.6.0\"}"}}
+[debug] [2025-12-31T02:04:22.717Z] [runtime-status] [56118] Listening to port: /var/folders/6s/mnkjjbz916x4scbl5my9ss1r0000gn/T/fire_emu_16310539cef7ddc1.sock {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[runtime-status] [56118] Listening to port: /var/folders/6s/mnkjjbz916x4scbl5my9ss1r0000gn/T/fire_emu_16310539cef7ddc1.sock"}}
+[debug] [2025-12-31T02:04:22.795Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2025-12-31T02:04:22.795Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2025-12-31T02:04:22.795Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[debug] [2025-12-31T02:04:22.797Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 1.767708ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 1.767708ms"}}
+[debug] [2025-12-31T02:04:22.797Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2025-12-31T02:04:22.797Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-12-31T02:04:22.797Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-12-31T02:04:22.797Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:04:22.798Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:04:22.798Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:04:22.798Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:04:22.798Z"],"workRunningCount":1}
+[debug] [2025-12-31T02:04:22.798Z] Accepted request POST /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2025-12-31T02:04:22.799Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-12-31T02:04:22.799Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2025-12-31T02:04:22.799Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2025-12-31T02:04:22.799Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[info] >  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"} {"user":{"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"verifications\":{\"app\":\"MISSING\",\"auth\":\"VALID\"},\"logging.googleapis.com/labels\":{\"firebase-log-type\":\"callable-request-verification\"},\"severity\":\"DEBUG\",\"message\":\"Callable request verification passed\"}"}}
+[warn] ⚠  Google API requested!
+   - URL: "https://oauth2.googleapis.com/token"
+   - Be careful, this may be a production service. {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Google API requested!\n   - URL: \"https://oauth2.googleapis.com/token\"\n   - Be careful, this may be a production service."}}
+[debug] [2025-12-31T02:04:24.794Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 1994.923459ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 1994.923459ms"}}
+[debug] [2025-12-31T02:04:24.794Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2025-12-31T02:04:24.794Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-12-31T02:04:24.794Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-12-31T02:04:24.794Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:06:05.018Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:06:05.018Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:06:05.019Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:06:05.018Z"],"workRunningCount":1}
+[debug] [2025-12-31T02:06:05.019Z] Accepted request OPTIONS /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2025-12-31T02:06:05.029Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-12-31T02:06:05.030Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2025-12-31T02:06:05.030Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2025-12-31T02:06:05.030Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[debug] [2025-12-31T02:06:05.037Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 7.229667ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 7.229667ms"}}
+[debug] [2025-12-31T02:06:05.038Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2025-12-31T02:06:05.038Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-12-31T02:06:05.038Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-12-31T02:06:05.038Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:06:05.039Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:06:05.039Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:06:05.039Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:06:05.039Z"],"workRunningCount":1}
+[debug] [2025-12-31T02:06:05.039Z] Accepted request POST /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2025-12-31T02:06:05.040Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-12-31T02:06:05.040Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2025-12-31T02:06:05.040Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2025-12-31T02:06:05.041Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[info] >  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"} {"user":{"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"verifications\":{\"app\":\"MISSING\",\"auth\":\"VALID\"},\"logging.googleapis.com/labels\":{\"firebase-log-type\":\"callable-request-verification\"},\"severity\":\"DEBUG\",\"message\":\"Callable request verification passed\"}"}}
+[debug] [2025-12-31T02:06:06.220Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 1179.125208ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 1179.125208ms"}}
+[debug] [2025-12-31T02:06:06.220Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2025-12-31T02:06:06.220Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-12-31T02:06:06.220Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-12-31T02:06:06.220Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:09:16.447Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:09:16.446Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:09:16.453Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:09:16.446Z"],"workRunningCount":1}
+[debug] [2025-12-31T02:09:16.453Z] Accepted request OPTIONS /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2025-12-31T02:09:16.460Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-12-31T02:09:16.461Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2025-12-31T02:09:16.461Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2025-12-31T02:09:16.462Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[debug] [2025-12-31T02:09:16.467Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 5.028125ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 5.028125ms"}}
+[debug] [2025-12-31T02:09:16.467Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2025-12-31T02:09:16.467Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-12-31T02:09:16.467Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-12-31T02:09:16.467Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:09:16.468Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:09:16.468Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:09:16.468Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:09:16.468Z"],"workRunningCount":1}
+[debug] [2025-12-31T02:09:16.468Z] Accepted request POST /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2025-12-31T02:09:16.470Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-12-31T02:09:16.470Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2025-12-31T02:09:16.470Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2025-12-31T02:09:16.471Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[info] >  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"} {"user":{"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"verifications\":{\"app\":\"MISSING\",\"auth\":\"VALID\"},\"logging.googleapis.com/labels\":{\"firebase-log-type\":\"callable-request-verification\"},\"severity\":\"DEBUG\",\"message\":\"Callable request verification passed\"}"}}
+[debug] [2025-12-31T02:09:17.669Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 1198.133083ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 1198.133083ms"}}
+[debug] [2025-12-31T02:09:17.669Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2025-12-31T02:09:17.669Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-12-31T02:09:17.669Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-12-31T02:09:17.669Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:11:38.397Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:11:38.396Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:11:38.398Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:11:38.396Z"],"workRunningCount":1}
+[debug] [2025-12-31T02:11:38.398Z] Accepted request OPTIONS /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2025-12-31T02:11:38.401Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-12-31T02:11:38.402Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2025-12-31T02:11:38.402Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2025-12-31T02:11:38.402Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[debug] [2025-12-31T02:11:38.415Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 12.615459ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 12.615459ms"}}
+[debug] [2025-12-31T02:11:38.415Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2025-12-31T02:11:38.415Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-12-31T02:11:38.415Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-12-31T02:11:38.415Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:11:38.416Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:11:38.416Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:11:38.416Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:11:38.416Z"],"workRunningCount":1}
+[debug] [2025-12-31T02:11:38.416Z] Accepted request POST /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2025-12-31T02:11:38.417Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-12-31T02:11:38.417Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2025-12-31T02:11:38.418Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2025-12-31T02:11:38.419Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[info] >  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"} {"user":{"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"verifications\":{\"app\":\"MISSING\",\"auth\":\"VALID\"},\"logging.googleapis.com/labels\":{\"firebase-log-type\":\"callable-request-verification\"},\"severity\":\"DEBUG\",\"message\":\"Callable request verification passed\"}"}}
+[debug] [2025-12-31T02:11:39.568Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 1149.77025ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 1149.77025ms"}}
+[debug] [2025-12-31T02:11:39.569Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2025-12-31T02:11:39.569Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-12-31T02:11:39.570Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-12-31T02:11:39.570Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:49:04.364Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:49:04.356Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:49:04.384Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:49:04.356Z"],"workRunningCount":1}
+[debug] [2025-12-31T02:49:04.385Z] Accepted request OPTIONS /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2025-12-31T02:49:04.447Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-12-31T02:49:04.450Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2025-12-31T02:49:04.453Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2025-12-31T02:49:04.458Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[debug] [2025-12-31T02:49:04.516Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 58.213958ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 58.213958ms"}}
+[debug] [2025-12-31T02:49:04.517Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2025-12-31T02:49:04.517Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-12-31T02:49:04.517Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-12-31T02:49:04.517Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:49:04.518Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:49:04.518Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-12-31T02:49:04.518Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2025-12-31T02:49:04.518Z"],"workRunningCount":1}
+[debug] [2025-12-31T02:49:04.518Z] Accepted request POST /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2025-12-31T02:49:04.520Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-12-31T02:49:04.521Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2025-12-31T02:49:04.521Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2025-12-31T02:49:04.521Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[info] >  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"} {"user":{"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"verifications\":{\"app\":\"MISSING\",\"auth\":\"VALID\"},\"logging.googleapis.com/labels\":{\"firebase-log-type\":\"callable-request-verification\"},\"severity\":\"DEBUG\",\"message\":\"Callable request verification passed\"}"}}
+[debug] [2025-12-31T02:49:05.679Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 1158.17925ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 1158.17925ms"}}
+[debug] [2025-12-31T02:49:05.679Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2025-12-31T02:49:05.679Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2025-12-31T02:49:05.679Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2025-12-31T02:49:05.679Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T01:26:15.563Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T01:26:15.555Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T01:26:15.592Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T01:26:15.555Z"],"workRunningCount":1}
+[debug] [2026-01-01T01:26:15.597Z] Accepted request OPTIONS /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2026-01-01T01:26:15.674Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2026-01-01T01:26:15.678Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2026-01-01T01:26:15.681Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2026-01-01T01:26:15.688Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[debug] [2026-01-01T01:26:15.785Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 96.320708ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 96.320708ms"}}
+[debug] [2026-01-01T01:26:15.786Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2026-01-01T01:26:15.786Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2026-01-01T01:26:15.786Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2026-01-01T01:26:15.786Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T01:26:15.789Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T01:26:15.789Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T01:26:15.789Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T01:26:15.789Z"],"workRunningCount":1}
+[debug] [2026-01-01T01:26:15.789Z] Accepted request POST /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2026-01-01T01:26:15.791Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2026-01-01T01:26:15.792Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2026-01-01T01:26:15.792Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2026-01-01T01:26:15.793Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[info] >  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"} {"user":{"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"verifications\":{\"app\":\"MISSING\",\"auth\":\"VALID\"},\"logging.googleapis.com/labels\":{\"firebase-log-type\":\"callable-request-verification\"},\"severity\":\"DEBUG\",\"message\":\"Callable request verification passed\"}"}}
+[debug] [2026-01-01T01:26:17.884Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 2091.545708ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 2091.545708ms"}}
+[debug] [2026-01-01T01:26:17.885Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2026-01-01T01:26:17.885Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2026-01-01T01:26:17.885Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2026-01-01T01:26:17.885Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T07:14:21.060Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T07:14:21.052Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T07:14:21.091Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T07:14:21.052Z"],"workRunningCount":1}
+[debug] [2026-01-01T07:14:21.093Z] Accepted request OPTIONS /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2026-01-01T07:14:21.172Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2026-01-01T07:14:21.174Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2026-01-01T07:14:21.176Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2026-01-01T07:14:21.185Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[debug] [2026-01-01T07:14:21.259Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 73.577708ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 73.577708ms"}}
+[debug] [2026-01-01T07:14:21.260Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2026-01-01T07:14:21.261Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2026-01-01T07:14:21.261Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2026-01-01T07:14:21.261Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T07:14:21.263Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T07:14:21.263Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T07:14:21.263Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T07:14:21.263Z"],"workRunningCount":1}
+[debug] [2026-01-01T07:14:21.264Z] Accepted request POST /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2026-01-01T07:14:21.274Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2026-01-01T07:14:21.274Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2026-01-01T07:14:21.274Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2026-01-01T07:14:21.274Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[info] >  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"} {"user":{"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"verifications\":{\"app\":\"MISSING\",\"auth\":\"VALID\"},\"logging.googleapis.com/labels\":{\"firebase-log-type\":\"callable-request-verification\"},\"severity\":\"DEBUG\",\"message\":\"Callable request verification passed\"}"}}
+[debug] [2026-01-01T07:14:25.261Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 3987.2917079999997ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 3987.2917079999997ms"}}
+[debug] [2026-01-01T07:14:25.262Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2026-01-01T07:14:25.262Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2026-01-01T07:14:25.262Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2026-01-01T07:14:25.262Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T07:36:02.188Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T07:36:02.184Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T07:36:02.200Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T07:36:02.184Z"],"workRunningCount":1}
+[debug] [2026-01-01T07:36:02.202Z] Accepted request OPTIONS /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2026-01-01T07:36:02.238Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2026-01-01T07:36:02.240Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2026-01-01T07:36:02.241Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2026-01-01T07:36:02.245Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[debug] [2026-01-01T07:36:02.300Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 54.925917ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 54.925917ms"}}
+[debug] [2026-01-01T07:36:02.301Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2026-01-01T07:36:02.301Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2026-01-01T07:36:02.301Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2026-01-01T07:36:02.301Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T07:36:02.302Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T07:36:02.302Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T07:36:02.302Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T07:36:02.302Z"],"workRunningCount":1}
+[debug] [2026-01-01T07:36:02.302Z] Accepted request POST /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2026-01-01T07:36:02.304Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2026-01-01T07:36:02.304Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2026-01-01T07:36:02.304Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2026-01-01T07:36:02.304Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[info] >  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"} {"user":{"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"verifications\":{\"app\":\"MISSING\",\"auth\":\"VALID\"},\"logging.googleapis.com/labels\":{\"firebase-log-type\":\"callable-request-verification\"},\"severity\":\"DEBUG\",\"message\":\"Callable request verification passed\"}"}}
+[debug] [2026-01-01T07:36:03.539Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 1235.398375ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 1235.398375ms"}}
+[debug] [2026-01-01T07:36:03.540Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2026-01-01T07:36:03.540Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2026-01-01T07:36:03.540Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2026-01-01T07:36:03.540Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T07:57:26.156Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T07:57:26.152Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T07:57:26.169Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T07:57:26.152Z"],"workRunningCount":1}
+[debug] [2026-01-01T07:57:26.170Z] Accepted request OPTIONS /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2026-01-01T07:57:26.212Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2026-01-01T07:57:26.214Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2026-01-01T07:57:26.215Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2026-01-01T07:57:26.219Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[debug] [2026-01-01T07:57:26.294Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 75.184334ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 75.184334ms"}}
+[debug] [2026-01-01T07:57:26.295Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2026-01-01T07:57:26.295Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2026-01-01T07:57:26.295Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2026-01-01T07:57:26.296Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T07:57:26.296Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T07:57:26.296Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T07:57:26.297Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T07:57:26.296Z"],"workRunningCount":1}
+[debug] [2026-01-01T07:57:26.297Z] Accepted request POST /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2026-01-01T07:57:26.301Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2026-01-01T07:57:26.301Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2026-01-01T07:57:26.301Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2026-01-01T07:57:26.302Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[info] >  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"} {"user":{"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"verifications\":{\"app\":\"MISSING\",\"auth\":\"VALID\"},\"logging.googleapis.com/labels\":{\"firebase-log-type\":\"callable-request-verification\"},\"severity\":\"DEBUG\",\"message\":\"Callable request verification passed\"}"}}
+[debug] [2026-01-01T07:57:28.651Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 2349.225292ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 2349.225292ms"}}
+[debug] [2026-01-01T07:57:28.652Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2026-01-01T07:57:28.652Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2026-01-01T07:57:28.653Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2026-01-01T07:57:28.653Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T07:59:59.225Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T07:59:59.223Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T07:59:59.233Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T07:59:59.223Z"],"workRunningCount":1}
+[debug] [2026-01-01T07:59:59.237Z] Accepted request OPTIONS /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2026-01-01T07:59:59.255Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2026-01-01T07:59:59.256Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2026-01-01T07:59:59.257Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2026-01-01T07:59:59.260Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[debug] [2026-01-01T07:59:59.307Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 46.852833ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 46.852833ms"}}
+[debug] [2026-01-01T07:59:59.307Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2026-01-01T07:59:59.307Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2026-01-01T07:59:59.307Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2026-01-01T07:59:59.307Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T07:59:59.308Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T07:59:59.308Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T07:59:59.308Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T07:59:59.308Z"],"workRunningCount":1}
+[debug] [2026-01-01T07:59:59.308Z] Accepted request POST /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2026-01-01T07:59:59.309Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2026-01-01T07:59:59.310Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2026-01-01T07:59:59.310Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2026-01-01T07:59:59.311Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[info] >  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"} {"user":{"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"verifications\":{\"app\":\"MISSING\",\"auth\":\"VALID\"},\"logging.googleapis.com/labels\":{\"firebase-log-type\":\"callable-request-verification\"},\"severity\":\"DEBUG\",\"message\":\"Callable request verification passed\"}"}}
+[debug] [2026-01-01T08:00:00.427Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 1116.056084ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 1116.056084ms"}}
+[debug] [2026-01-01T08:00:00.428Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2026-01-01T08:00:00.428Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2026-01-01T08:00:00.428Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2026-01-01T08:00:00.428Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T08:10:16.740Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T08:10:16.737Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T08:10:16.759Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T08:10:16.737Z"],"workRunningCount":1}
+[debug] [2026-01-01T08:10:16.760Z] Accepted request OPTIONS /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2026-01-01T08:10:16.788Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2026-01-01T08:10:16.789Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2026-01-01T08:10:16.790Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2026-01-01T08:10:16.800Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[debug] [2026-01-01T08:10:16.863Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 62.883875ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 62.883875ms"}}
+[debug] [2026-01-01T08:10:16.863Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2026-01-01T08:10:16.863Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2026-01-01T08:10:16.863Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2026-01-01T08:10:16.863Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T08:10:16.863Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T08:10:16.863Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T08:10:16.863Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T08:10:16.863Z"],"workRunningCount":1}
+[debug] [2026-01-01T08:10:16.863Z] Accepted request POST /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2026-01-01T08:10:16.866Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2026-01-01T08:10:16.866Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2026-01-01T08:10:16.867Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2026-01-01T08:10:16.867Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[info] >  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"} {"user":{"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"verifications\":{\"app\":\"MISSING\",\"auth\":\"VALID\"},\"logging.googleapis.com/labels\":{\"firebase-log-type\":\"callable-request-verification\"},\"severity\":\"DEBUG\",\"message\":\"Callable request verification passed\"}"}}
+[debug] [2026-01-01T08:10:18.919Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 2052.859291ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 2052.859291ms"}}
+[debug] [2026-01-01T08:10:18.921Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2026-01-01T08:10:18.921Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2026-01-01T08:10:18.921Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2026-01-01T08:10:18.921Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T08:11:46.950Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T08:11:46.949Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T08:11:46.951Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T08:11:46.949Z"],"workRunningCount":1}
+[debug] [2026-01-01T08:11:46.951Z] Accepted request OPTIONS /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2026-01-01T08:11:46.959Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2026-01-01T08:11:46.960Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2026-01-01T08:11:46.960Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2026-01-01T08:11:46.961Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[debug] [2026-01-01T08:11:46.967Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 6.671291ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 6.671291ms"}}
+[debug] [2026-01-01T08:11:46.968Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2026-01-01T08:11:46.968Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2026-01-01T08:11:46.969Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2026-01-01T08:11:46.969Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T08:11:46.969Z] [work-queue] {"queuedWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T08:11:46.969Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2026-01-01T08:11:46.970Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/paperless-events/us-central1/listAllUsers-2026-01-01T08:11:46.969Z"],"workRunningCount":1}
+[debug] [2026-01-01T08:11:46.970Z] Accepted request POST /paperless-events/us-central1/listAllUsers --> us-central1-listAllUsers
+[debug] [2026-01-01T08:11:46.971Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2026-01-01T08:11:46.971Z] [functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/paperless-events/us-central1/listAllUsers, mapping to path=/"}}
+[debug] [2026-01-01T08:11:46.972Z] [worker-pool] submitRequest(triggerId=us-central1-listAllUsers) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] submitRequest(triggerId=us-central1-listAllUsers)"}}
+[info] i  functions: Beginning execution of "us-central1-listAllUsers" {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Beginning execution of \"us-central1-listAllUsers\""}}
+[debug] [2026-01-01T08:11:46.972Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: BUSY"}}
+[info] >  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"} {"user":{"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"verifications\":{\"app\":\"MISSING\",\"auth\":\"VALID\"},\"logging.googleapis.com/labels\":{\"firebase-log-type\":\"callable-request-verification\"},\"severity\":\"DEBUG\",\"message\":\"Callable request verification passed\"}"}}
+[debug] [2026-01-01T08:11:48.097Z] Finishing up request with event=pause {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=pause"}}
+[info] i  functions: Finished "us-central1-listAllUsers" in 1125.6015ms {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finished \"us-central1-listAllUsers\" in 1125.6015ms"}}
+[debug] [2026-01-01T08:11:48.098Z] [worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"[worker-us-central1-listAllUsers-19ef43aa-55ab-4004-a9e4-3d5aa07ee702]: IDLE"}}
+[debug] [2026-01-01T08:11:48.098Z] Finishing up request with event=finish {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=finish"}}
+[debug] [2026-01-01T08:11:48.098Z] Finishing up request with event=close {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-listAllUsers"},"extension":{},"message":"Finishing up request with event=close"}}
+[debug] [2026-01-01T08:11:48.099Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}

@@ -13,11 +13,14 @@ import {
   Unlock, 
   ZoomIn, 
   ZoomOut, 
-  Loader2 
+  Loader2,
+  X,
+  AlertCircle
 } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { addDoc, collection } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 
 export interface Element {
@@ -68,6 +71,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
   const [zoom, setZoom] = useState(1);
   const canvasRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { user } = useAuth();
 
@@ -75,6 +79,13 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
   const [savingInvitation, setSavingInvitation] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'tools' | 'properties'>('tools');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [showImageUploadModal, setShowImageUploadModal] = useState(false);
+  const [tempImageUrl, setTempImageUrl] = useState<string>('');
+  const [imageUploadMethod, setImageUploadMethod] = useState<'file' | 'url'>('url');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const shareUrl = invitationId ? `${window.location.origin}/invite/${invitationId}` : '';
 
@@ -85,16 +96,220 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
     { id: 'circle' as const, icon: Circle, label: 'Circle' },
   ];
 
+  // Upload image to Firebase Storage
+  const uploadImageToFirebase = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      if (!user) {
+        reject(new Error('Please sign in to upload images'));
+        return;
+      }
+
+      // Create a unique filename
+      const timestamp = Date.now();
+      const fileExtension = file.name.split('.').pop();
+      const filename = `images/${user.uid}/${timestamp}.${fileExtension}`;
+      const storageRef = ref(storage, filename);
+      
+      // Create upload task
+      const uploadTask = uploadBytesResumable(storageRef, file);
+      
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setUploadProgress(progress);
+        },
+        (error) => {
+          console.error('Upload error:', error);
+          setUploadError(`Upload failed: ${error.message}`);
+          reject(error);
+        },
+        async () => {
+          try {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            setUploadProgress(100);
+            setTimeout(() => setUploadProgress(0), 500);
+            resolve(downloadURL);
+          } catch (error) {
+            reject(error);
+          }
+        }
+      );
+    });
+  };
+
+  // Alternative: Convert to Base64 (for small images or when user is not signed in)
+  const convertImageToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        resolve(event.target?.result as string);
+      };
+      reader.onerror = (error) => {
+        reject(error);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Handle image file upload
+  const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file type
+    if (!file.type.match('image.*')) {
+      alert('Please select an image file (JPEG, PNG, GIF, etc.)');
+      return;
+    }
+
+    // Check file size
+    if (file.size > 5 * 1024 * 1024) { // 5MB
+      alert('Image size should be less than 5MB');
+      return;
+    }
+
+    setUploadingImage(true);
+    setUploadError(null);
+    setUploadProgress(0);
+
+    try {
+      let imageUrl: string;
+
+      if (user) {
+        // Try Firebase Storage first
+        imageUrl = await uploadImageToFirebase(file);
+      } else {
+        // If not signed in, use Base64
+        imageUrl = await convertImageToBase64(file);
+        alert('Note: Image stored locally. Sign in to save images permanently.');
+      }
+
+      createImageElement(imageUrl);
+      setShowImageUploadModal(false);
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      
+      // Fallback to base64 if Firebase fails
+      try {
+        const base64Image = await convertImageToBase64(file);
+        createImageElement(base64Image);
+        setShowImageUploadModal(false);
+        alert('Uploaded locally. Firebase upload failed: ' + error.message);
+      } catch (fallbackError) {
+        setUploadError(`Upload failed: ${error.message}. Try using URL method.`);
+      }
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // Handle URL image input
+  const handleUrlImageSubmit = () => {
+    if (!tempImageUrl.trim()) {
+      alert('Please enter an image URL');
+      return;
+    }
+
+    try {
+      new URL(tempImageUrl);
+      
+      // Check if it looks like an image URL
+      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
+      const isImageUrl = imageExtensions.some(ext => 
+        tempImageUrl.toLowerCase().includes(ext)
+      );
+      
+      if (!isImageUrl && !confirm('This might not be an image URL. Continue anyway?')) {
+        return;
+      }
+
+      createImageElement(tempImageUrl);
+      setShowImageUploadModal(false);
+      setTempImageUrl('');
+      setImagePreview(null);
+    } catch (error) {
+      alert('Please enter a valid URL (e.g., https://example.com/image.jpg)');
+    }
+  };
+
+  // Create image element
+  const createImageElement = (imageUrl: string) => {
+    const newElement: Element = {
+      id: Date.now(),
+      type: 'image',
+      x: 100,
+      y: 100,
+      width: 200,
+      height: 200,
+      content: '',
+      fontSize: 16,
+      color: '#000000',
+      bgColor: 'transparent',
+      locked: false,
+      imageUrl: imageUrl,
+    };
+    setElements([...elements, newElement]);
+    setSelectedElement(newElement.id);
+    setSelectedTool(null);
+    setActiveTab('properties');
+  };
+
+  // Update existing element's image
+  const updateElementImage = (imageUrl: string) => {
+    if (selectedElement !== null) {
+      updateElement(selectedElement, { imageUrl });
+      setShowImageUploadModal(false);
+      setTempImageUrl('');
+      setImagePreview(null);
+    }
+  };
+
+  // Open image upload modal
+  const handleImageToolClick = () => {
+    setShowImageUploadModal(true);
+    setImagePreview(null);
+    setImageUploadMethod('url');
+    setTempImageUrl('');
+    setUploadError(null);
+  };
+
+  // Preview URL image
+  const previewImageUrl = () => {
+    if (!tempImageUrl.trim()) {
+      alert('Please enter an image URL');
+      return;
+    }
+    
+    try {
+      new URL(tempImageUrl);
+      setImagePreview(tempImageUrl);
+      setUploadError(null);
+    } catch (error) {
+      setUploadError('Please enter a valid URL');
+    }
+  };
+
+  // Cancel and close modal
+  const cancelUpload = () => {
+    setUploadingImage(false);
+    setUploadError(null);
+    setUploadProgress(0);
+    setShowImageUploadModal(false);
+  };
+
   // Calculate responsive canvas dimensions
   const calculateCanvasDimensions = () => {
     if (!containerRef.current) return { width: 800, height: 1000 };
     
-    const containerWidth = containerRef.current.clientWidth - 40; // Account for padding
+    const containerWidth = containerRef.current.clientWidth - 40;
     const containerHeight = containerRef.current.clientHeight - 40;
     
-    // Keep aspect ratio of 8:10
     const width = Math.min(containerWidth, 800);
-    const height = width * 1.25; // 1000/800 = 1.25
+    const height = width * 1.25;
     
     return { width, height };
   };
@@ -106,7 +321,6 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
       const dimensions = calculateCanvasDimensions();
       setCanvasDimensions(dimensions);
       
-      // Auto-zoom for mobile
       if (window.innerWidth < 768) {
         const scale = dimensions.width / 800;
         setZoom(Math.max(0.5, Math.min(1, scale)));
@@ -120,6 +334,11 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
   }, []);
 
   const addElement = (type: 'text' | 'image' | 'rectangle' | 'circle') => {
+    if (type === 'image') {
+      handleImageToolClick();
+      return;
+    }
+    
     const newElement: Element = {
       id: Date.now(),
       type,
@@ -132,7 +351,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
       color: '#000000',
       bgColor: type === 'text' ? 'transparent' : '#e5e7eb',
       locked: false,
-      imageUrl: type === 'image' ? 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400' : null,
+      imageUrl: null,
     };
     setElements([...elements, newElement]);
     setSelectedElement(newElement.id);
@@ -178,12 +397,21 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
     }
   };
 
+  
+
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (selectedTool && e.target === canvasRef.current) {
+    // If image tool is selected and clicking on canvas background
+    if (selectedTool === 'image' && e.target === canvasRef.current) {
+      setShowImageUploadModal(true);
+      return;
+    }
+    
+    // If other tool is selected and clicking on canvas background
+    if (selectedTool && selectedTool !== 'image' && e.target === canvasRef.current) {
       const rect = canvasRef.current!.getBoundingClientRect();
       const x = (e.clientX - rect.left) / zoom;
       const y = (e.clientY - rect.top) / zoom;
-
+  
       const newElement: Element = {
         id: Date.now(),
         type: selectedTool,
@@ -196,7 +424,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
         color: '#000000',
         bgColor: selectedTool === 'text' ? 'transparent' : '#e5e7eb',
         locked: false,
-        imageUrl: selectedTool === 'image' ? 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400' : null,
+        imageUrl: null,
       };
       setElements([...elements, newElement]);
       setSelectedElement(newElement.id);
@@ -216,70 +444,206 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
     setActiveTab('properties');
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || selectedElement === null) return;
-
-    const element = elements.find(el => el.id === selectedElement);
-    if (!element || element.locked) return;
-
-    const dx = (e.clientX - dragStart.x) / zoom;
-    const dy = (e.clientY - dragStart.y) / zoom;
-
-    updateElement(selectedElement, {
-      x: element.x + dx,
-      y: element.y + dy,
-    });
-
-    setDragStart({ x: e.clientX, y: e.clientY });
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove as any);
-      document.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove as any);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isDragging, selectedElement, dragStart]);
-
-  const exportTemplate = () => {
-    const data = { elements, eventData };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'event-template.json';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const importTemplate = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const data = JSON.parse(event.target?.result as string);
-        setElements(data.elements || []);
-        setEventData({ ...eventData, ...data.eventData });
-      } catch (err) {
-        alert('Invalid template file');
-      }
-    };
-    reader.readAsText(file);
-  };
-
   const selectedEl = elements.find(el => el.id === selectedElement);
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
+      {/* Image Upload Modal */}
+      {showImageUploadModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
+            <button
+              onClick={cancelUpload}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+              disabled={uploadingImage}
+            >
+              <X size={24} />
+            </button>
+
+            <h3 className="text-xl font-bold mb-4 text-center">
+              {selectedElement !== null ? 'Change Image' : 'Add Image'}
+            </h3>
+
+            {/* Upload Method Tabs */}
+            <div className="flex border-b border-gray-200 mb-6">
+              <button
+                onClick={() => !uploadingImage && setImageUploadMethod('url')}
+                disabled={uploadingImage}
+                className={`flex-1 py-3 font-medium ${imageUploadMethod === 'url' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'} ${uploadingImage ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                From URL
+              </button>
+              <button
+                onClick={() => !uploadingImage && setImageUploadMethod('file')}
+                disabled={uploadingImage}
+                className={`flex-1 py-3 font-medium ${imageUploadMethod === 'file' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'} ${uploadingImage ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                Upload File
+              </button>
+            </div>
+
+            {/* File Upload Method */}
+            {imageUploadMethod === 'file' ? (
+              <div className="space-y-4">
+                {uploadError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg flex items-start gap-2">
+                    <AlertCircle size={20} className="mt-0.5 flex-shrink-0" />
+                    <div className="text-sm">{uploadError}</div>
+                  </div>
+                )}
+
+                {uploadingImage ? (
+                  <div className="text-center py-8">
+                    <Loader2 className="animate-spin mx-auto mb-4" size={32} />
+                    <p className="text-gray-700 font-medium mb-2">Uploading Image...</p>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                      <div 
+                        className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-sm text-gray-600">{Math.round(uploadProgress)}% uploaded</p>
+                    {!user && (
+                      <p className="text-xs text-yellow-600 mt-2">
+                        Not signed in. Image will be stored locally.
+                      </p>
+                    )}
+                    <button
+                      onClick={cancelUpload}
+                      className="mt-4 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg"
+                    >
+                      Cancel Upload
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-500 transition-colors">
+                      <Upload className="mx-auto mb-4 text-gray-400" size={48} />
+                      <p className="text-gray-600 mb-2">Click to select image file</p>
+                      <p className="text-sm text-gray-500 mb-4">
+                        JPG, PNG, GIF (max 5MB)
+                      </p>
+                      {!user && (
+                        <p className="text-sm text-yellow-600 mb-3">
+                          Sign in to save images permanently
+                        </p>
+                      )}
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleImageFileUpload}
+                        accept="image/*"
+                        className="hidden"
+                        id="image-file-input"
+                      />
+                      <label
+                        htmlFor="image-file-input"
+                        className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
+                      >
+                        Select Image
+                      </label>
+                    </div>
+                    
+                    <div className="text-center">
+                      <button
+                        onClick={() => {
+                          setImageUploadMethod('url');
+                          setUploadError(null);
+                        }}
+                        className="text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        ← Use image URL instead
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              /* URL Method */
+              <div className="space-y-4">
+                {uploadError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg flex items-start gap-2">
+                    <AlertCircle size={20} className="mt-0.5 flex-shrink-0" />
+                    <div className="text-sm">{uploadError}</div>
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={tempImageUrl}
+                      onChange={(e) => {
+                        setTempImageUrl(e.target.value);
+                        setUploadError(null);
+                      }}
+                      placeholder="https://example.com/image.jpg"
+                      className="w-full px-4 py-3 border rounded-lg pr-10"
+                      disabled={uploadingImage}
+                    />
+                    {tempImageUrl && (
+                      <button
+                        onClick={() => setTempImageUrl('')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <X size={18} />
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={previewImageUrl}
+                      disabled={!tempImageUrl.trim() || uploadingImage}
+                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Preview
+                    </button>
+                    <button
+                      onClick={handleUrlImageSubmit}
+                      disabled={!tempImageUrl.trim() || uploadingImage}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Use Image
+                    </button>
+                  </div>
+                </div>
+
+                {/* Image Preview */}
+                {imagePreview && (
+                  <div className="mt-6">
+                    <p className="text-sm font-medium mb-2">Preview:</p>
+                    <div className="border rounded-lg p-4">
+                      <img 
+                        src={imagePreview} 
+                        alt="Preview" 
+                        className="w-full h-48 object-cover rounded"
+                        onError={() => {
+                          setImagePreview(null);
+                          setUploadError('Failed to load image from URL');
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="text-center pt-2">
+                  <button
+                    onClick={() => {
+                      setImageUploadMethod('file');
+                      setUploadError(null);
+                    }}
+                    className="text-sm text-blue-600 hover:text-blue-800"
+                  >
+                    ← Upload from computer
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Left Sidebar - Desktop only */}
@@ -293,7 +657,12 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
               {tools.map((tool) => (
                 <button
                   key={tool.id}
-                  onClick={() => addElement(tool.id)}
+                  onClick={() => {
+                    setSelectedTool(tool.id);
+                    if (tool.id === 'image') {
+                      handleImageToolClick();
+                    }
+                  }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     selectedTool === tool.id
                       ? 'bg-blue-500 text-white'
@@ -357,20 +726,6 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                   </>
                 )}
               </button>
-
-              <button
-                onClick={exportTemplate}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm"
-              >
-                <Download size={18} />
-                Export Template
-              </button>
-
-              <label className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-800 cursor-pointer transition text-sm">
-                <Upload size={18} />
-                Import Template
-                <input type="file" accept=".json" onChange={importTemplate} className="hidden" />
-              </label>
             </div>
           </div>
         </div>
@@ -465,12 +820,19 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                     {el.type === 'image' && el.imageUrl && (
                       <img 
                         src={el.imageUrl} 
-                        alt="" 
+                        alt="User uploaded" 
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                         onError={(e) => {
-                          e.currentTarget.src = 'https://via.placeholder.com/150x150?text=Image+Error';
+                          e.currentTarget.src = 'https://via.placeholder.com/200x200?text=Image+Error';
+                          updateElement(el.id, { imageUrl: 'https://via.placeholder.com/200x200?text=Image+Error' });
                         }}
                       />
+                    )}
+                    {el.type === 'image' && !el.imageUrl && (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 text-gray-500">
+                        <ImageIcon size={32} />
+                        <span className="text-sm mt-2">No Image</span>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -558,7 +920,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                 />
               </div>
 
-              {selectedEl.type !== 'text' && (
+              {selectedEl.type !== 'text' && selectedEl.type !== 'image' && (
                 <div>
                   <label className="block text-sm font-medium mb-1">Background</label>
                   <input
@@ -571,17 +933,34 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                 </div>
               )}
 
-              {selectedEl.type === 'image' && (
+            {selectedEl.type === 'image' && (
                 <div>
-                  <label className="block text-sm font-medium mb-1">Image URL</label>
-                  <input
-                    type="text"
-                    value={selectedEl.imageUrl || ''}
-                    onChange={(e) => updateElement(selectedEl.id, { imageUrl: e.target.value })}
-                    disabled={selectedEl.locked}
-                    className="w-full px-2 py-1 border rounded text-sm"
-                    placeholder="https://..."
-                  />
+                  <label className="block text-sm font-medium mb-1">Image</label>
+                  <div className="space-y-3">
+                    {/* Current image preview */}
+                    {selectedEl.imageUrl && (
+                      <div className="mb-2">
+                        <p className="text-xs text-gray-500 mb-1">Current Image:</p>
+                        <img 
+                          src={selectedEl.imageUrl} 
+                          alt="Preview" 
+                          className="w-full h-32 object-cover rounded-lg border"
+                          onError={(e) => {
+                            e.currentTarget.src = 'https://via.placeholder.com/200x200?text=Image+Error';
+                          }}
+                        />
+                      </div>
+                    )}
+                    
+                    {/* Change image button */}
+                    <button
+                      onClick={() => setShowImageUploadModal(true)}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm"
+                    >
+                      <Upload size={16} />
+                      {selectedEl.imageUrl ? 'Change Image' : 'Add Image'}
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -627,7 +1006,13 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                   {tools.map((tool) => (
                     <button
                       key={tool.id}
-                      onClick={() => addElement(tool.id)}
+                      onClick={() => {
+                        if (tool.id === 'image') {
+                          handleImageToolClick();
+                        } else {
+                          addElement(tool.id);
+                        }
+                      }}
                       className={`flex flex-col items-center justify-center p-3 rounded-lg transition-colors ${
                         selectedTool === tool.id
                           ? 'bg-blue-500 text-white'
@@ -694,22 +1079,6 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                     </>
                   )}
                 </button>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={exportTemplate}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm"
-                  >
-                    <Download size={16} />
-                    Export
-                  </button>
-
-                  <label className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 cursor-pointer transition text-sm">
-                    <Upload size={16} />
-                    Import
-                    <input type="file" accept=".json" onChange={importTemplate} className="hidden" />
-                  </label>
-                </div>
               </div>
             </div>
           ) : (
@@ -804,7 +1173,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                       </div>
                     </div>
 
-                    {selectedEl.type !== 'text' && (
+                    {selectedEl.type !== 'text' && selectedEl.type !== 'image' && (
                       <div>
                         <label className="block text-xs font-medium mb-1">Background</label>
                         <div className="flex items-center gap-2">
@@ -822,15 +1191,14 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
 
                     {selectedEl.type === 'image' && (
                       <div>
-                        <label className="block text-xs font-medium mb-1">Image URL</label>
-                        <input
-                          type="text"
-                          value={selectedEl.imageUrl || ''}
-                          onChange={(e) => updateElement(selectedEl.id, { imageUrl: e.target.value })}
-                          disabled={selectedEl.locked}
-                          className="w-full px-2 py-1 border rounded text-sm"
-                          placeholder="https://..."
-                        />
+                        <label className="block text-xs font-medium mb-1">Image</label>
+                        <button
+                          onClick={() => setShowImageUploadModal(true)}
+                          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm"
+                        >
+                          <Upload size={16} />
+                          {selectedEl.imageUrl ? 'Change Image' : 'Add Image'}
+                        </button>
                       </div>
                     )}
 

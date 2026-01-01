@@ -1,0 +1,38 @@
+type User @table {
+  displayName: String!
+  email: String!
+  createdAt: Timestamp!
+  photoUrl: String
+}
+
+type Category @table {
+  name: String!
+  createdAt: Timestamp!
+  description: String
+  user: User
+}
+
+type Tag @table {
+  name: String!
+  createdAt: Timestamp!
+  user: User
+}
+
+type Document @table {
+  title: String!
+  fileUrl: String!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  description: String
+  originalFilename: String
+  fileType: String
+  isPrivate: Boolean
+  user: User
+  category: Category
+}
+
+type DocumentTag @table(key: ["document", "tag"]) {
+  createdAt: Timestamp!
+  document: Document!
+  tag: Tag!
+}

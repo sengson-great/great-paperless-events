@@ -1,4 +1,7 @@
-import React from 'react';
+// app/components/EventTemplateViewer.tsx
+"use client";
+
+import React, { useEffect, useState, useRef } from 'react';
 
 export interface Element {
   id: number;
@@ -11,115 +14,127 @@ export interface Element {
   fontSize?: number;
   color?: string;
   bgColor?: string;
-  imageUrl?: string;
-  locked?: boolean;
+  locked: boolean;
+  imageUrl?: string | null;
 }
 
 interface EventData {
-  [key: string]: any;
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  description?: string;
 }
 
 interface EventTemplateViewerProps {
   elements: Element[];
-  eventData?: EventData;
+  eventData: EventData;
 }
 
-const EventTemplateViewer: React.FC<EventTemplateViewerProps> = ({
-  elements = [],
-  eventData = {}
-}) => {
-  const replacePlaceholders = (text: string = ''): string => {
-    let result = text;
-    Object.keys(eventData).forEach(key => {
-      result = result.replace(new RegExp(`{${key}}`, 'g'), eventData[key] || '');
-    });
-    return result;
-  };
+const EventTemplateViewer: React.FC<EventTemplateViewerProps> = ({ elements, eventData }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [canvasDimensions, setCanvasDimensions] = useState({ width: 800, height: 1000 });
+  const [scale, setScale] = useState(1);
 
-  // Show a message if no elements
-  if (!elements || elements.length === 0) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-50">
-        <div className="text-center p-8 bg-white rounded-lg shadow-lg">
-          <p className="text-gray-600 text-lg">No invitation elements to display</p>
-        </div>
-      </div>
-    );
-  }
+  // Calculate responsive canvas dimensions
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      if (!containerRef.current) return;
+      
+      const containerWidth = containerRef.current.clientWidth;
+      const containerHeight = containerRef.current.clientHeight;
+      
+      // Calculate scale to fit container while maintaining aspect ratio
+      const widthScale = containerWidth / 800;
+      const heightScale = containerHeight / 1000;
+      const newScale = Math.min(widthScale, heightScale, 1); // Don't scale up beyond 1
+      
+      setScale(newScale);
+      
+      // Set actual dimensions for the canvas
+      const width = 800 * newScale;
+      const height = 1000 * newScale;
+      setCanvasDimensions({ width, height });
+    };
+
+    updateCanvasSize();
+    window.addEventListener('resize', updateCanvasSize);
+    
+    return () => window.removeEventListener('resize', updateCanvasSize);
+  }, []);
 
   return (
-    <div className="flex justify-center items-start min-h-screen bg-gray-50 p-8">
-      <div 
-        className="relative bg-white shadow-lg"
+    <div 
+      ref={containerRef}
+      className="relative w-full h-full flex items-center justify-center overflow-hidden"
+      style={{ minHeight: '400px' }}
+    >
+      <div
+        className="relative bg-white shadow-xl"
         style={{
-          width: '800px',
-          height: '1000px',
+          width: `${canvasDimensions.width}px`,
+          height: `${canvasDimensions.height}px`,
+          transform: `scale(${scale})`,
+          transformOrigin: 'center',
         }}
       >
+        {/* Render all elements */}
         {elements.map((el) => (
           <div
             key={el.id}
             className="absolute"
             style={{
-              left: `${el.x}px`,
-              top: `${el.y}px`,
-              width: `${el.width}px`,
-              height: `${el.height}px`,
+              left: `${(el.x / 800) * 100}%`,
+              top: `${(el.y / 1000) * 100}%`,
+              width: `${(el.width / 800) * 100}%`,
+              height: `${(el.height / 1000) * 100}%`,
             }}
           >
             {el.type === 'text' && (
               <div
                 style={{
+                  fontSize: `${(el.fontSize || 16) * scale}px`,
+                  color: el.color,
+                  backgroundColor: el.bgColor,
                   width: '100%',
                   height: '100%',
-                  color: el.color || '#000000',
-                  fontSize: `${el.fontSize || 16}px`,
-                  backgroundColor: el.bgColor || 'transparent',
-                  padding: '8px',
+                  padding: `${8 * scale}px`,
                   boxSizing: 'border-box',
-                  outline: 'none',
-                  wordWrap: 'break-word',
-                  overflowWrap: 'break-word',
+                  overflow: 'hidden',
+                  wordBreak: 'break-word',
                 }}
               >
-                {replacePlaceholders(el.content)}
+                {el.content}
               </div>
             )}
-
             {el.type === 'rectangle' && (
               <div
                 style={{
                   width: '100%',
                   height: '100%',
-                  backgroundColor: el.bgColor || '#e5e7eb',
-                  border: `2px solid ${el.color || '#000000'}`,
-                  boxSizing: 'border-box',
+                  backgroundColor: el.bgColor,
+                  border: `${2 * scale}px solid ${el.color}`,
                 }}
               />
             )}
-
             {el.type === 'circle' && (
               <div
                 style={{
                   width: '100%',
                   height: '100%',
-                  backgroundColor: el.bgColor || '#e5e7eb',
-                  border: `2px solid ${el.color || '#000000'}`,
+                  backgroundColor: el.bgColor,
+                  border: `${2 * scale}px solid ${el.color}`,
                   borderRadius: '50%',
-                  boxSizing: 'border-box',
                 }}
               />
             )}
-
             {el.type === 'image' && el.imageUrl && (
               <img
                 src={el.imageUrl}
-                alt="Invitation element"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
+                alt=""
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = 'https://via.placeholder.com/150x150?text=Image+Error';
                 }}
               />
             )}
