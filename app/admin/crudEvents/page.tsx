@@ -81,8 +81,8 @@ const EventDashboard: React.FC = () => {
   const [resizing, setResizing] = useState<{ elementId: number | null; corner: string | null }>({ elementId: null, corner: null });
 
   // Placeholders
-  const [placeholders, setPlaceholders] = useState<string[]>([]);
-  const [newPlaceholderLabel, setNewPlaceholderLabel] = useState('');
+  // const [placeholders, setPlaceholders] = useState<string[]>([]);
+  // const [newPlaceholderLabel, setNewPlaceholderLabel] = useState('');
 
   // Image upload state
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -469,21 +469,6 @@ const EventDashboard: React.FC = () => {
     return label.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
   };
 
-  const addPlaceholder = () => {
-    if (!newPlaceholderLabel.trim()) return;
-    const key = generateKey(newPlaceholderLabel.trim());
-    if (placeholders.includes(key)) {
-      alert('Placeholder already exists');
-      return;
-    }
-    setPlaceholders([...placeholders, key]);
-    setNewPlaceholderLabel('');
-  };
-
-  const removePlaceholder = (key: string) => {
-    setPlaceholders(placeholders.filter(p => p !== key));
-  };
-
   // Template save
   const handleSaveTemplate = async () => {
     if (!templateName.trim() || !templateCategory || elements.length <= 1) {
@@ -499,7 +484,6 @@ const EventDashboard: React.FC = () => {
           ...el,
           id: typeof el.id === 'number' ? el.id.toString() : el.id
         })),
-        placeholders,
         previewImage: previewImage || null,
         description: templateDescription.trim() || null,
         isActive: true,
@@ -596,8 +580,6 @@ Try creating it as a new template instead.`);
     setTemplateCategory('');
     setTemplateDescription('');
     setPreviewImage(null);
-    setPlaceholders([]);
-    setNewPlaceholderLabel('');
     setElements([{ id: Date.now(), type: 'rectangle', x: 0, y: 0, width: 800, height: 1000, bgColor: '#ffffff', locked: true }]);
     setSelectedElementId(null);
     setEditingTemplate(null);
@@ -776,7 +758,6 @@ Try creating it as a new template instead.`);
                                   setTemplateDescription(template.description || '');
                                   setPreviewImage(template.previewImage || null);
                                   setElements(template.elements || []);
-                                  setPlaceholders(template.placeholders || []);
                                   setShowTemplateForm(true);
                                 }}
                                 className="p-2 text-gray-600 hover:text-blue-600"
