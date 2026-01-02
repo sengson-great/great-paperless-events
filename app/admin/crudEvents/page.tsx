@@ -968,39 +968,6 @@ Try creating it as a new template instead.`);
                   </div>
                 </div>
 
-                <div>
-                  <label className="block font-medium mb-3">Placeholders</label>
-                  <div className="flex gap-2 mb-3">
-                    <input
-                      type="text"
-                      value={newPlaceholderLabel}
-                      onChange={e => setNewPlaceholderLabel(e.target.value)}
-                      className="flex-1 px-4 py-2 border rounded-lg"
-                      placeholder="E.g., Bride Name"
-                      onKeyPress={(e) => e.key === 'Enter' && addPlaceholder()}
-                    />
-                    <button
-                      onClick={addPlaceholder}
-                      className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200"
-                    >
-                      Add
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {placeholders.map((ph, index) => (
-                      <div key={index} className="flex items-center gap-1 bg-blue-50 text-blue-700 px-3 py-1 rounded-lg">
-                        <span>{ph}</span>
-                        <button
-                          onClick={() => removePlaceholder(ph)}
-                          className="text-blue-500 hover:text-blue-700"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
                 <button
                   onClick={handleSaveTemplate}
                   className="w-full py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold flex items-center justify-center gap-3"

@@ -15,7 +15,9 @@ import {
   ZoomOut, 
   Loader2,
   X,
-  AlertCircle
+  AlertCircle,
+  GripVertical,
+  Move
 } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { addDoc, collection } from 'firebase/firestore';
@@ -67,7 +69,17 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
   const [selectedTool, setSelectedTool] = useState<'text' | 'image' | 'rectangle' | 'circle' | null>(null);
   const [selectedElement, setSelectedElement] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0, elementX: 0, elementY: 0 });
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeStart, setResizeStart] = useState({ 
+    x: 0, 
+    y: 0, 
+    width: 0, 
+    height: 0, 
+    elementX: 0, 
+    elementY: 0,
+    corner: '' 
+  });
   const [zoom, setZoom] = useState(1);
   const canvasRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -96,6 +108,162 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
     { id: 'circle' as const, icon: Circle, label: 'Circle' },
   ];
 
+  // Add global mouse event listeners for dragging and resizing
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (isDragging && selectedElement !== null) {
+        handleDrag(e);
+      }
+      if (isResizing && selectedElement !== null) {
+        handleResize(e);
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      if (isDragging) {
+        setIsDragging(false);
+      }
+      if (isResizing) {
+        setIsResizing(false);
+      }
+    };
+
+    window.addEventListener('mousemove', handleGlobalMouseMove);
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleGlobalMouseMove);
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [isDragging, isResizing, selectedElement, zoom]);
+
+  const handleDrag = (e: MouseEvent) => {
+    if (!canvasRef.current || !selectedElement) return;
+    
+    const element = elements.find(el => el.id === selectedElement);
+    if (!element || element.locked) return;
+
+    const rect = canvasRef.current.getBoundingClientRect();
+    const scale = zoom;
+    const deltaX = (e.clientX - dragStart.x) / scale;
+    const deltaY = (e.clientY - dragStart.y) / scale;
+
+    const canvasWidth = canvasRef.current.offsetWidth / scale;
+    const canvasHeight = canvasRef.current.offsetHeight / scale;
+
+    const newX = Math.max(0, Math.min(canvasWidth - element.width, dragStart.elementX + deltaX));
+    const newY = Math.max(0, Math.min(canvasHeight - element.height, dragStart.elementY + deltaY));
+
+    updateElement(selectedElement, { x: newX, y: newY });
+  };
+
+  const handleResize = (e: MouseEvent) => {
+    if (!canvasRef.current || !selectedElement || !isResizing) return;
+    
+    const element = elements.find(el => el.id === selectedElement);
+    if (!element || element.locked) return;
+
+    const rect = canvasRef.current.getBoundingClientRect();
+    const scale = zoom;
+    const deltaX = (e.clientX - resizeStart.x) / scale;
+    const deltaY = (e.clientY - resizeStart.y) / scale;
+
+    const canvasWidth = canvasRef.current.offsetWidth / scale;
+    const canvasHeight = canvasRef.current.offsetHeight / scale;
+
+    let newX = element.x;
+    let newY = element.y;
+    let newWidth = element.width;
+    let newHeight = element.height;
+
+    switch (resizeStart.corner) {
+      case 'se': // Bottom-right
+        newWidth = Math.max(50, resizeStart.width + deltaX);
+        newHeight = Math.max(50, resizeStart.height + deltaY);
+        break;
+      case 'sw': // Bottom-left
+        newWidth = Math.max(50, resizeStart.width - deltaX);
+        newHeight = Math.max(50, resizeStart.height + deltaY);
+        newX = Math.max(0, resizeStart.elementX + deltaX);
+        break;
+      case 'ne': // Top-right
+        newWidth = Math.max(50, resizeStart.width + deltaX);
+        newHeight = Math.max(50, resizeStart.height - deltaY);
+        newY = Math.max(0, resizeStart.elementY + deltaY);
+        break;
+      case 'nw': // Top-left
+        newWidth = Math.max(50, resizeStart.width - deltaX);
+        newHeight = Math.max(50, resizeStart.height - deltaY);
+        newX = Math.max(0, resizeStart.elementX + deltaX);
+        newY = Math.max(0, resizeStart.elementY + deltaY);
+        break;
+    }
+
+    // Keep within canvas bounds
+    if (newX + newWidth > canvasWidth) {
+      newWidth = canvasWidth - newX;
+    }
+    if (newY + newHeight > canvasHeight) {
+      newHeight = canvasHeight - newY;
+    }
+
+    // Ensure minimum size
+    newWidth = Math.max(50, newWidth);
+    newHeight = Math.max(50, newHeight);
+
+    updateElement(selectedElement, {
+      x: newX,
+      y: newY,
+      width: newWidth,
+      height: newHeight
+    });
+  };
+
+  const startDrag = (e: React.MouseEvent, elementId: number) => {
+    e.stopPropagation();
+    const element = elements.find(el => el.id === elementId);
+    if (!element || element.locked) return;
+
+    setSelectedElement(elementId);
+    setIsDragging(true);
+    
+    if (canvasRef.current) {
+      const rect = canvasRef.current.getBoundingClientRect();
+      const scale = zoom;
+      
+      setDragStart({
+        x: e.clientX,
+        y: e.clientY,
+        elementX: element.x,
+        elementY: element.y
+      });
+    }
+  };
+
+  const startResize = (e: React.MouseEvent, elementId: number, corner: string) => {
+    e.stopPropagation();
+    const element = elements.find(el => el.id === elementId);
+    if (!element || element.locked) return;
+
+    setSelectedElement(elementId);
+    setIsResizing(true);
+    
+    if (canvasRef.current) {
+      const rect = canvasRef.current.getBoundingClientRect();
+      const scale = zoom;
+      
+      setResizeStart({
+        x: e.clientX,
+        y: e.clientY,
+        width: element.width,
+        height: element.height,
+        elementX: element.x,
+        elementY: element.y,
+        corner: corner
+      });
+    }
+  };
+
   // Upload image to Firebase Storage
   const uploadImageToFirebase = async (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -104,13 +272,11 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
         return;
       }
 
-      // Create a unique filename
       const timestamp = Date.now();
       const fileExtension = file.name.split('.').pop();
       const filename = `images/${user.uid}/${timestamp}.${fileExtension}`;
       const storageRef = ref(storage, filename);
       
-      // Create upload task
       const uploadTask = uploadBytesResumable(storageRef, file);
       
       uploadTask.on(
@@ -138,7 +304,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
     });
   };
 
-  // Alternative: Convert to Base64 (for small images or when user is not signed in)
+  // Convert to Base64
   const convertImageToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -157,14 +323,12 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file type
     if (!file.type.match('image.*')) {
       alert('Please select an image file (JPEG, PNG, GIF, etc.)');
       return;
     }
 
-    // Check file size
-    if (file.size > 5 * 1024 * 1024) { // 5MB
+    if (file.size > 5 * 1024 * 1024) {
       alert('Image size should be less than 5MB');
       return;
     }
@@ -177,10 +341,8 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
       let imageUrl: string;
 
       if (user) {
-        // Try Firebase Storage first
         imageUrl = await uploadImageToFirebase(file);
       } else {
-        // If not signed in, use Base64
         imageUrl = await convertImageToBase64(file);
         alert('Note: Image stored locally. Sign in to save images permanently.');
       }
@@ -190,7 +352,6 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
     } catch (error: any) {
       console.error('Error uploading image:', error);
       
-      // Fallback to base64 if Firebase fails
       try {
         const base64Image = await convertImageToBase64(file);
         createImageElement(base64Image);
@@ -217,7 +378,6 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
     try {
       new URL(tempImageUrl);
       
-      // Check if it looks like an image URL
       const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
       const isImageUrl = imageExtensions.some(ext => 
         tempImageUrl.toLowerCase().includes(ext)
@@ -397,21 +557,18 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
     }
   };
 
-  
-
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // If image tool is selected and clicking on canvas background
     if (selectedTool === 'image' && e.target === canvasRef.current) {
       setShowImageUploadModal(true);
       return;
     }
     
-    // If other tool is selected and clicking on canvas background
     if (selectedTool && selectedTool !== 'image' && e.target === canvasRef.current) {
       const rect = canvasRef.current!.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / zoom;
-      const y = (e.clientY - rect.top) / zoom;
-  
+      const scale = zoom;
+      const x = (e.clientX - rect.left) / scale;
+      const y = (e.clientY - rect.top) / scale;
+
       const newElement: Element = {
         id: Date.now(),
         type: selectedTool,
@@ -431,17 +588,11 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
       setSelectedTool(null);
       setActiveTab('properties');
     }
-  };
-
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>, elementId: number) => {
-    e.stopPropagation();
-    const element = elements.find(el => el.id === elementId);
-    if (element?.locked) return;
-
-    setSelectedElement(elementId);
-    setIsDragging(true);
-    setDragStart({ x: e.clientX, y: e.clientY });
-    setActiveTab('properties');
+    
+    // Deselect if clicking on canvas background
+    if (e.target === canvasRef.current) {
+      setSelectedElement(null);
+    }
   };
 
   const selectedEl = elements.find(el => el.id === selectedElement);
@@ -778,27 +929,69 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                   height: `${canvasDimensions.height}px`,
                   minWidth: '300px',
                   minHeight: '375px',
+                  cursor: isDragging || isResizing ? 'grabbing' : 'default'
                 }}
               >
                 {elements.map((el) => (
                   <div
                     key={el.id}
-                    onMouseDown={(e) => handleMouseDown(e, el.id)}
-                    className={`absolute cursor-move ${selectedElement === el.id ? 'ring-2 ring-blue-500' : ''} ${el.locked ? 'cursor-not-allowed' : ''}`}
+                    className={`absolute ${selectedElement === el.id ? 'ring-2 ring-blue-500' : ''} ${el.locked ? 'cursor-not-allowed' : ''}`}
                     style={{
-                      left: `${(el.x / 800) * 100}%`,
-                      top: `${(el.y / 1000) * 100}%`,
-                      width: `${(el.width / 800) * 100}%`,
-                      height: `${(el.height / 1000) * 100}%`,
+                      left: `${el.x}px`,
+                      top: `${el.y}px`,
+                      width: `${el.width}px`,
+                      height: `${el.height}px`,
+                      cursor: el.locked ? 'not-allowed' : (isDragging || isResizing ? 'grabbing' : 'grab')
                     }}
+                    onMouseDown={(e) => startDrag(e, el.id)}
                   >
+                    {/* Drag Handle */}
+                    {!el.locked && (
+                      <div 
+                        className="absolute -top-2 -left-2 bg-blue-500 text-white p-1 rounded-full cursor-move hover:bg-blue-600 z-10"
+                        onMouseDown={(e) => {
+                          startDrag(e, el.id);
+                          e.stopPropagation();
+                        }}
+                        title="Drag to move"
+                      >
+                        <GripVertical size={12} />
+                      </div>
+                    )}
+
+                    {/* Resize Handles */}
+                    {!el.locked && selectedElement === el.id && (
+                      <>
+                        {/* SE corner */}
+                        <div
+                          className="absolute bottom-0 right-0 w-4 h-4 bg-blue-500 cursor-se-resize rounded-sm"
+                          onMouseDown={(e) => startResize(e, el.id, 'se')}
+                        />
+                        {/* SW corner */}
+                        <div
+                          className="absolute bottom-0 left-0 w-4 h-4 bg-blue-500 cursor-sw-resize rounded-sm"
+                          onMouseDown={(e) => startResize(e, el.id, 'sw')}
+                        />
+                        {/* NE corner */}
+                        <div
+                          className="absolute top-0 right-0 w-4 h-4 bg-blue-500 cursor-ne-resize rounded-sm"
+                          onMouseDown={(e) => startResize(e, el.id, 'ne')}
+                        />
+                        {/* NW corner */}
+                        <div
+                          className="absolute top-0 left-0 w-4 h-4 bg-blue-500 cursor-nw-resize rounded-sm"
+                          onMouseDown={(e) => startResize(e, el.id, 'nw')}
+                        />
+                      </>
+                    )}
+
                     {el.type === 'text' && (
                       <div
                         contentEditable={!el.locked}
                         suppressContentEditableWarning={true}
                         onBlur={(e) => updateElement(el.id, { content: e.currentTarget.textContent || '' })}
                         style={{
-                          fontSize: `${(el.fontSize || 16) * (canvasDimensions.width / 800)}px`,
+                          fontSize: `${(el.fontSize || 16)}px`,
                           color: el.color,
                           backgroundColor: el.bgColor,
                           width: '100%',
@@ -806,30 +999,88 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                           outline: 'none',
                           padding: '8px',
                           boxSizing: 'border-box',
+                          pointerEvents: el.locked ? 'none' : 'auto'
+                        }}
+                        onClick={(e) => {
+                          if (!el.locked) {
+                            setSelectedElement(el.id);
+                            setActiveTab('properties');
+                          }
+                          e.stopPropagation();
                         }}
                       >
                         {el.content}
                       </div>
                     )}
                     {el.type === 'rectangle' && (
-                      <div style={{ width: '100%', height: '100%', backgroundColor: el.bgColor, border: `2px solid ${el.color}` }} />
+                      <div 
+                        style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          backgroundColor: el.bgColor, 
+                          border: `2px solid ${el.color}` 
+                        }}
+                        onClick={(e) => {
+                          if (!el.locked) {
+                            setSelectedElement(el.id);
+                            setActiveTab('properties');
+                          }
+                          e.stopPropagation();
+                        }}
+                      />
                     )}
                     {el.type === 'circle' && (
-                      <div style={{ width: '100%', height: '100%', backgroundColor: el.bgColor, border: `2px solid ${el.color}`, borderRadius: '50%' }} />
+                      <div 
+                        style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          backgroundColor: el.bgColor, 
+                          border: `2px solid ${el.color}`, 
+                          borderRadius: '50%' 
+                        }}
+                        onClick={(e) => {
+                          if (!el.locked) {
+                            setSelectedElement(el.id);
+                            setActiveTab('properties');
+                          }
+                          e.stopPropagation();
+                        }}
+                      />
                     )}
                     {el.type === 'image' && el.imageUrl && (
                       <img 
                         src={el.imageUrl} 
                         alt="User uploaded" 
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                        style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          objectFit: 'cover',
+                          pointerEvents: el.locked ? 'none' : 'auto'
+                        }} 
                         onError={(e) => {
                           e.currentTarget.src = 'https://via.placeholder.com/200x200?text=Image+Error';
                           updateElement(el.id, { imageUrl: 'https://via.placeholder.com/200x200?text=Image+Error' });
                         }}
+                        onClick={(e) => {
+                          if (!el.locked) {
+                            setSelectedElement(el.id);
+                            setActiveTab('properties');
+                          }
+                          e.stopPropagation();
+                        }}
                       />
                     )}
                     {el.type === 'image' && !el.imageUrl && (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 text-gray-500">
+                      <div 
+                        className="w-full h-full flex flex-col items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 text-gray-500"
+                        onClick={(e) => {
+                          if (!el.locked) {
+                            setSelectedElement(el.id);
+                            setActiveTab('properties');
+                          }
+                          e.stopPropagation();
+                        }}
+                      >
                         <ImageIcon size={32} />
                         <span className="text-sm mt-2">No Image</span>
                       </div>
@@ -933,11 +1184,10 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                 </div>
               )}
 
-            {selectedEl.type === 'image' && (
+              {selectedEl.type === 'image' && (
                 <div>
                   <label className="block text-sm font-medium mb-1">Image</label>
                   <div className="space-y-3">
-                    {/* Current image preview */}
                     {selectedEl.imageUrl && (
                       <div className="mb-2">
                         <p className="text-xs text-gray-500 mb-1">Current Image:</p>
@@ -952,7 +1202,6 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                       </div>
                     )}
                     
-                    {/* Change image button */}
                     <button
                       onClick={() => setShowImageUploadModal(true)}
                       className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm"
@@ -971,6 +1220,19 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                 {selectedEl.locked ? <Unlock size={18} /> : <Lock size={18} />}
                 {selectedEl.locked ? 'Unlock' : 'Lock'}
               </button>
+
+              {/* Drag Instructions */}
+              <div className="pt-4 border-t border-gray-200">
+                <p className="text-xs text-gray-500 mb-2">Drag Controls:</p>
+                <div className="flex items-center gap-2 text-xs text-gray-600">
+                  <GripVertical size={12} className="text-blue-500" />
+                  <span>Drag handle to move</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
+                  <div className="w-3 h-3 bg-blue-500 rounded-sm"></div>
+                  <span>Drag corners to resize</span>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -1209,6 +1471,21 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                       {selectedEl.locked ? <Unlock size={16} /> : <Lock size={16} />}
                       {selectedEl.locked ? 'Unlock Element' : 'Lock Element'}
                     </button>
+
+                    {/* Mobile Drag Instructions */}
+                    <div className="pt-4 border-t border-gray-200">
+                      <p className="text-xs text-gray-500 mb-2">Drag Controls:</p>
+                      <div className="text-xs text-gray-600 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <GripVertical size={12} className="text-blue-500 flex-shrink-0" />
+                          <span>Use drag handle to move</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-blue-500 rounded-sm flex-shrink-0"></div>
+                          <span>Use corners to resize</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </>
               ) : (
