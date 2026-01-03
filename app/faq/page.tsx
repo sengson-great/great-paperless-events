@@ -1,10 +1,20 @@
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 export default function FaqPage() {
     return <div>
         <Navbar />
         <div className="w-full min-h-screen lg:pt-10 md:pt-10 pt-32 flex flex-col justify-center items-center lg:gap- px-10 md:px-20">
+            {/* Back Button */}
+            <div className="w-full max-w-4xl mb-8">
+                <Link href="/" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group">
+                    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                    <span className="font-medium">Back to Home</span>
+                </Link>
+            </div>
+
             <h2 className=" mx-auto mb-5 font-bold!">Frequently asked questions</h2>
             <ol className="items-start">
                 <li>

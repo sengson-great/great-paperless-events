@@ -6,3 +6,16 @@ overflow-hidden
 transition-all
 duration-300
 ease-in-out
+animate-fade-in
+animate-slide-up
+animate-scale-in
+shadow-soft
+shadow-medium
+shadow-strong
+shadow-glow
+shadow-glow-gold
+glass
+glass-dark
+gradient-text
+hover-lift
+transition-smooth
