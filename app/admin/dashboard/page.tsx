@@ -130,7 +130,7 @@ export default function AdminDashboard() {
         {normalizedData.map((height, i) => (
           <div key={i} className="flex-1 relative group">
             <div
-              className="w-full bg-gradient-to-t from-blue-200 to-blue-400 rounded-t transition-all hover:opacity-80"
+              className="w-full bg-linear-to-t from-blue-200 to-blue-400 rounded-t transition-all hover:opacity-80"
               style={{ height: `${height}%` }}
             >
               {data[i] === max && (
@@ -230,7 +230,7 @@ export default function AdminDashboard() {
                   <span className="text-gray-600 text-sm">Total Active Users</span>
                 </div>
                 <div className="text-4xl font-bold text-gray-800">{totalUsers}</div>
-                <div className="mt-2 h-1 bg-gradient-to-r from-purple-200 to-transparent rounded"></div>
+                <div className="mt-2 h-1 bg-linear-to-r from-purple-200 to-transparent rounded"></div>
               </div>
 
               <div className="bg-white rounded-xl shadow-sm p-6">
@@ -241,7 +241,7 @@ export default function AdminDashboard() {
                   <span className="text-gray-600 text-sm">Total Invitations (Estimate)</span>
                 </div>
                 <div className="text-4xl font-bold text-gray-800">124k</div>
-                <div className="mt-2 h-1 bg-gradient-to-r from-red-200 to-transparent rounded"></div>
+                <div className="mt-2 h-1 bg-linear-to-r from-red-200 to-transparent rounded"></div>
               </div>
             </div>
 

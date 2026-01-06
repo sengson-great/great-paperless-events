@@ -1,11 +1,12 @@
 import Footer from "../components/footer";
 import Motivation from "../components/motivation";
 import Navbar from "../components/navbar";
+import NavbarLanding from "../components/navbar-landing";
 
 export default function ReadMorePage() {
     return (
         <div>
-            <Navbar />
+            <NavbarLanding />
             <Motivation />
             <div className="px-20 py-10 text-lg text-justify gap-3 flex flex-col">
                 <p>At the heart of our mission is the belief that technology should simplify life—not complicate it. That’s why our paperless event platform is built to streamline every stage of event planning, from sending invitations to managing guest responses.</p>

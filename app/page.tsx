@@ -33,7 +33,7 @@ export default function HomePage() {
       <NavbarLanding />
 
       {/* Hero Section - Modern Gradient Theme */}
-      <section id="home" className="relative min-h-screen flex items-center px-6 md:px-12 lg:px-20 py-32 bg-gradient-to-br from-slate-50 via-white to-purple-50">
+      <section id="home" className="relative min-h-screen flex items-center px-6 md:px-12 lg:px-20 py-32 bg-linear-to-br from-slate-50 via-white to-purple-50">
         <div className="max-w-7xl mx-auto w-full">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left Content */}
@@ -42,15 +42,15 @@ export default function HomePage() {
               className={`space-y-8 ${heroAnimation.isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
             >
               {/* Badge - Modern Gradient */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-teal-50 to-purple-50 border border-teal-100 rounded-full">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-linear-to-r from-teal-50 to-purple-50 border border-teal-100 rounded-full">
                 <Leaf className="w-4 h-4 text-teal-600" />
-                <span className="text-sm font-medium bg-gradient-to-r from-teal-700 to-purple-700 bg-clip-text text-transparent">100% Paperless & Eco-Friendly</span>
+                <span className="text-sm font-medium bg-linear-to-r from-teal-700 to-purple-700 bg-clip-text text-transparent">100% Paperless & Eco-Friendly</span>
               </div>
 
               {/* Main Heading - Gradient Accent */}
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight text-gray-900">
                 Beautiful Digital Invitations
-                <span className="block bg-gradient-to-r from-teal-600 via-cyan-600 to-purple-600 bg-clip-text text-transparent mt-2">
+                <span className="block bg-linear-to-r from-teal-600 via-cyan-600 to-purple-600 bg-clip-text text-transparent mt-2">
                   for Khmer Events
                 </span>
               </h1>
@@ -66,7 +66,7 @@ export default function HomePage() {
                   <div className="w-full sm:w-auto h-14 bg-gray-100 rounded-xl animate-pulse" />
                 ) : user ? (
                   <Link href="/templateSelector" className="inline-block no-underline">
-                    <button className="px-8 py-4 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl font-semibold text-lg hover:from-teal-700 hover:to-cyan-700 transition-all flex items-center gap-3 group shadow-lg hover:shadow-xl">
+                    <button className="px-8 py-4 bg-linear-to-r from-teal-600 to-cyan-600 text-white rounded-xl font-semibold text-lg hover:from-teal-700 hover:to-cyan-700 transition-all flex items-center gap-3 group shadow-lg hover:shadow-xl">
                       <Send className="w-5 h-5" />
                       <span className="no-underline">Send Invitation</span>
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -74,7 +74,7 @@ export default function HomePage() {
                   </Link>
                 ) : (
                   <Link href="/auth/signin" className="inline-block no-underline">
-                    <button className="px-8 py-4 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl font-semibold text-lg hover:from-teal-700 hover:to-cyan-700 transition-all flex items-center gap-3 group shadow-lg hover:shadow-xl">
+                    <button className="px-8 py-4 bg-linear-to-r from-teal-600 to-cyan-600 text-white rounded-xl font-semibold text-lg hover:from-teal-700 hover:to-cyan-700 transition-all flex items-center gap-3 group shadow-lg hover:shadow-xl">
                       <Send className="w-5 h-5" />
                       <span className="no-underline">Get Started Free</span>
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -147,8 +147,8 @@ export default function HomePage() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Feature Card 1 */}
-            <div className={`group p-8 bg-gradient-to-br from-white to-teal-50/30 rounded-xl hover:shadow-lg transition-all border border-gray-100 ${featuresAnimation.isVisible ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
-              <div className="w-14 h-14 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-xl flex items-center justify-center mb-6">
+            <div className={`group p-8 bg-linear-to-br from-white to-teal-50/30 rounded-xl hover:shadow-lg transition-all border border-gray-100 ${featuresAnimation.isVisible ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
+              <div className="w-14 h-14 bg-linear-to-br from-teal-500 to-cyan-500 rounded-xl flex items-center justify-center mb-6">
                 <Sparkles className="w-7 h-7 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">Beautiful Templates</h3>
@@ -158,8 +158,8 @@ export default function HomePage() {
             </div>
 
             {/* Feature Card 2 */}
-            <div className={`group p-8 bg-gradient-to-br from-white to-cyan-50/30 rounded-xl hover:shadow-lg transition-all border border-gray-100 ${featuresAnimation.isVisible ? 'animate-fade-in-up animation-delay-400' : 'opacity-0'}`}>
-              <div className="w-14 h-14 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center mb-6">
+            <div className={`group p-8 bg-linear-to-br from-white to-cyan-50/30 rounded-xl hover:shadow-lg transition-all border border-gray-100 ${featuresAnimation.isVisible ? 'animate-fade-in-up animation-delay-400' : 'opacity-0'}`}>
+              <div className="w-14 h-14 bg-linear-to-br from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center mb-6">
                 <Share2 className="w-7 h-7 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">Easy Sharing</h3>
@@ -169,8 +169,8 @@ export default function HomePage() {
             </div>
 
             {/* Feature Card 3 */}
-            <div className={`group p-8 bg-gradient-to-br from-white to-emerald-50/30 rounded-xl hover:shadow-lg transition-all border border-gray-100 ${featuresAnimation.isVisible ? 'animate-fade-in-up animation-delay-600' : 'opacity-0'}`}>
-              <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center mb-6">
+            <div className={`group p-8 bg-linear-to-br from-white to-emerald-50/30 rounded-xl hover:shadow-lg transition-all border border-gray-100 ${featuresAnimation.isVisible ? 'animate-fade-in-up animation-delay-600' : 'opacity-0'}`}>
+              <div className="w-14 h-14 bg-linear-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center mb-6">
                 <Leaf className="w-7 h-7 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">Eco-Friendly</h3>
@@ -180,8 +180,8 @@ export default function HomePage() {
             </div>
 
             {/* Feature Card 4 */}
-            <div className={`group p-8 bg-gradient-to-br from-white to-purple-50/30 rounded-xl hover:shadow-lg transition-all border border-gray-100 ${featuresAnimation.isVisible ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
-              <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-6">
+            <div className={`group p-8 bg-linear-to-br from-white to-purple-50/30 rounded-xl hover:shadow-lg transition-all border border-gray-100 ${featuresAnimation.isVisible ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
+              <div className="w-14 h-14 bg-linear-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-6">
                 <Zap className="w-7 h-7 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">Lightning Fast</h3>
@@ -191,8 +191,8 @@ export default function HomePage() {
             </div>
 
             {/* Feature Card 5 */}
-            <div className={`group p-8 bg-gradient-to-br from-white to-pink-50/30 rounded-xl hover:shadow-lg transition-all border border-gray-100 ${featuresAnimation.isVisible ? 'animate-fade-in-up animation-delay-400' : 'opacity-0'}`}>
-              <div className="w-14 h-14 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center mb-6">
+            <div className={`group p-8 bg-linear-to-br from-white to-pink-50/30 rounded-xl hover:shadow-lg transition-all border border-gray-100 ${featuresAnimation.isVisible ? 'animate-fade-in-up animation-delay-400' : 'opacity-0'}`}>
+              <div className="w-14 h-14 bg-linear-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center mb-6">
                 <Heart className="w-7 h-7 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">Free Forever</h3>
@@ -202,8 +202,8 @@ export default function HomePage() {
             </div>
 
             {/* Feature Card 6 */}
-            <div className={`group p-8 bg-gradient-to-br from-white to-indigo-50/30 rounded-xl hover:shadow-lg transition-all border border-gray-100 ${featuresAnimation.isVisible ? 'animate-fade-in-up animation-delay-600' : 'opacity-0'}`}>
-              <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center mb-6">
+            <div className={`group p-8 bg-linear-to-br from-white to-indigo-50/30 rounded-xl hover:shadow-lg transition-all border border-gray-100 ${featuresAnimation.isVisible ? 'animate-fade-in-up animation-delay-600' : 'opacity-0'}`}>
+              <div className="w-14 h-14 bg-linear-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center mb-6">
                 <Globe className="w-7 h-7 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">Multi-Language</h3>
@@ -218,7 +218,7 @@ export default function HomePage() {
       {/* Stats Section - Modern Gradient */}
       <section 
         ref={statsAnimation.ref}
-        className={`py-20 bg-gradient-to-r from-teal-600 via-cyan-600 to-purple-600 ${statsAnimation.isVisible ? 'animate-fade-in' : 'opacity-0'}`}
+        className={`py-20 bg-linear-to-r from-teal-600 via-cyan-600 to-purple-600 ${statsAnimation.isVisible ? 'animate-fade-in' : 'opacity-0'}`}
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">

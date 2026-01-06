@@ -2,10 +2,11 @@ import Footer from "../components/footer";
 import Navbar from "../components/navbar";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import NavbarLanding from "../components/navbar-landing";
 
 export default function FaqPage() {
     return <div>
-        <Navbar />
+        <NavbarLanding/>
         <div className="w-full min-h-screen lg:pt-10 md:pt-10 pt-32 flex flex-col justify-center items-center lg:gap- px-10 md:px-20">
             {/* Back Button */}
             <div className="w-full max-w-4xl mb-8">

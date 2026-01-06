@@ -1,13 +1,42 @@
-"use client"
+// app/template/page.tsx
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import EventTemplateEditor from '@/app/template/page';
-import { Element } from '@/app/template/page';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, doc, getDoc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 
-// Define Template interface matching your Firebase structure
+// Dynamically import EventTemplateEditor to avoid circular dependency
+const EventTemplateEditor = dynamic(
+  () => import('@/app/components/EventTemplateEditor'),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin" size={48} />
+      </div>
+    )
+  }
+);
+
+// Define interfaces
+export interface Element {
+  id: number;
+  type: 'text' | 'image' | 'rectangle' | 'circle';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  content?: string;
+  fontSize?: number;
+  color?: string;
+  bgColor?: string;
+  locked: boolean;
+  imageUrl?: string | null;
+}
+
 interface FirebaseTemplate {
   id: string;
   name: string;
@@ -20,7 +49,6 @@ interface FirebaseTemplate {
   createdAt: any;
 }
 
-// Define Template for TemplateSelector (compatible with existing code)
 interface Template {
   id?: string;
   name: string;
@@ -33,132 +61,228 @@ interface Template {
     location: string;
   }>;
   category?: string;
-  categoryId?: string; // Add this
+  categoryId?: string;
   description?: string;
 }
 
-// Interface for Category
 interface Category {
   id: string;
   name: string;
   order: number;
 }
 
-const TemplateSelector: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+const TemplatePage: React.FC = () => {
+  const searchParams = useSearchParams();
+  const editEventId = searchParams?.get('edit');
+  
+  const [mode, setMode] = useState<'loading' | 'edit' | 'select'>('loading');
+  const [editData, setEditData] = useState<any>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [groupedByCategory, setGroupedByCategory] = useState<Record<string, Template[]>>({});
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Fetch categories and templates from Firebase
+  // Load data and check for edit mode
   useEffect(() => {
-    const fetchData = async () => {
+    const initialize = async () => {
       try {
         setLoading(true);
         
-        // Fetch categories
-        const catQuery = query(collection(db, 'categories'), orderBy('order'));
-        const catSnap = await getDocs(catQuery);
-        
-        if (catSnap.empty) {
-          console.log("No categories found");
-          setLoading(false);
-          return;
-        }
-        
-        const cats = catSnap.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Category[];
-        
-        setCategories(cats);
-        
-        // Fetch all templates
-        const allTemplates: Template[] = [];
-        const grouped: Record<string, Template[]> = {};
-        
-        // Initialize groups for all categories
-        cats.forEach(cat => {
-          grouped[cat.id] = [];
-        });
-        
-        for (const cat of cats) {
+        if (editEventId) {
+          // Try to load event for editing
           try {
-            const tempQuery = query(collection(db, `categories/${cat.id}/templates`), orderBy('createdAt', 'desc'));
-            const tempSnap = await getDocs(tempQuery);
-            
-            tempSnap.docs.forEach(doc => {
-              const firebaseTemplate = doc.data() as FirebaseTemplate;
-              
-              const template: Template = {
-                id: doc.id,
-                name: firebaseTemplate.name,
-                previewImage: firebaseTemplate.previewImage,
-                elements: firebaseTemplate.elements || [],
-                category: cat.name,
-                categoryId: cat.id, // Store category ID
-                description: firebaseTemplate.description,
-                eventDataDefaults: {
-                  title: firebaseTemplate.name,
-                  date: new Date().toISOString().split('T')[0],
-                  time: '18:00',
-                  location: 'Venue TBD'
-                }
-              };
-              
-              allTemplates.push(template);
-              
-              // Group by actual category ID
-              if (!grouped[cat.id]) {
-                grouped[cat.id] = [];
-              }
-              grouped[cat.id].push(template);
-            });
+            const docSnap = await getDoc(doc(db, 'events', editEventId));
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              setEditData({
+                id: docSnap.id,
+                elements: data.elements || [],
+                eventData: {
+                  title: data.title || 'Edit Event',
+                  date: data.date || new Date().toISOString().split('T')[0],
+                  time: data.time || '18:00',
+                  location: data.location || '',
+                  description: data.description || '',
+                },
+                isPublic: data.isPublic || false,
+                privatePin: data.privatePin || '',
+              });
+              setMode('edit');
+              setLoading(false);
+              return;
+            }
           } catch (error) {
-            console.error(`Error fetching templates for category ${cat.id}:`, error);
+            console.error('Error loading event for edit:', error);
           }
         }
         
-        setTemplates(allTemplates);
-        setGroupedByCategory(grouped);
-        
-        console.log('Templates grouped by actual categories:', Object.keys(grouped));
+        // If not editing or edit failed, load templates
+        await loadTemplates();
+        setMode('select');
         
       } catch (error) {
-        console.error('Error fetching templates:', error);
+        console.error('Error initializing:', error);
+        setMode('select');
       } finally {
         setLoading(false);
       }
     };
     
-    fetchData();
-  }, []);
+    initialize();
+  }, [editEventId]);
 
-  // If template is selected, open the editor
-  if (selectedTemplate) {
-    return <EventTemplateEditor 
-      initialElements={selectedTemplate.elements} 
-      initialEventData={selectedTemplate.eventDataDefaults} 
-    />;
-  }
+  const loadTemplates = async () => {
+    try {
+      // Fetch categories
+      const catQuery = query(collection(db, 'categories'), orderBy('order'));
+      const catSnap = await getDocs(catQuery);
+      
+      if (catSnap.empty) {
+        console.log("No categories found");
+        return;
+      }
+      
+      const cats = catSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Category[];
+      
+      setCategories(cats);
+      
+      // Fetch all templates
+      const allTemplates: Template[] = [];
+      const grouped: Record<string, Template[]> = {};
+      
+      cats.forEach(cat => {
+        grouped[cat.id] = [];
+      });
+      
+      for (const cat of cats) {
+        try {
+          const tempQuery = query(collection(db, `categories/${cat.id}/templates`), orderBy('createdAt', 'desc'));
+          const tempSnap = await getDocs(tempQuery);
+          
+          tempSnap.docs.forEach(doc => {
+            const firebaseTemplate = doc.data() as FirebaseTemplate;
+            
+            const template: Template = {
+              id: doc.id,
+              name: firebaseTemplate.name,
+              previewImage: firebaseTemplate.previewImage,
+              elements: firebaseTemplate.elements || [],
+              category: cat.name,
+              categoryId: cat.id,
+              description: firebaseTemplate.description,
+              eventDataDefaults: {
+                title: firebaseTemplate.name,
+                date: new Date().toISOString().split('T')[0],
+                time: '18:00',
+                location: 'https://maps.app.goo.gl/EzaCs7ybbjdohnwj9'
+              }
+            };
+            
+            allTemplates.push(template);
+            
+            if (!grouped[cat.id]) {
+              grouped[cat.id] = [];
+            }
+            grouped[cat.id].push(template);
+          });
+        } catch (error) {
+          console.error(`Error fetching templates for category ${cat.id}:`, error);
+        }
+      }
+      
+      setTemplates(allTemplates);
+      setGroupedByCategory(grouped);
+      
+    } catch (error) {
+      console.error('Error loading templates:', error);
+    }
+  };
 
-  // Get templates for selected category
-  const currentTemplates = selectedCategory ? groupedByCategory[selectedCategory] || [] : [];
+  const handleTemplateSelect = (template: Template) => {
+    setSelectedTemplate(template);
+  };
 
-  if (loading) {
+  // Loading state
+  if (loading || mode === 'loading') {
     return (
-      <div className="min-h-screen bg-gray-50 p-8 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="animate-spin mx-auto mb-4" size={48} />
-          <p className="text-gray-600">Loading templates...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="animate-spin" size={48} />
       </div>
     );
   }
 
-  // If no categories, show message
+  // Edit mode - show editor with existing event
+  if (mode === 'edit' && editData) {
+    return (
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="animate-spin" size={48} />
+        </div>
+      }>
+        <EventTemplateEditor 
+          initialElements={editData.elements}
+          initialEventData={editData.eventData}
+          eventId={editEventId!}
+          isEditing={true}
+          initialIsPublic={editData.isPublic}
+          initialPrivatePin={editData.privatePin}
+        />
+      </Suspense>
+    );
+  }
+
+  // Template selected mode - show editor with template
+  if (selectedTemplate) {
+    return (
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="animate-spin" size={48} />
+        </div>
+      }>
+        <EventTemplateEditor 
+          initialElements={selectedTemplate.elements}
+          initialEventData={selectedTemplate.eventDataDefaults}
+        />
+      </Suspense>
+    );
+  }
+
+  // Template selector mode - show template selection UI
+  return <TemplateSelectorUI 
+    categories={categories}
+    templates={templates}
+    groupedByCategory={groupedByCategory}
+    selectedCategory={selectedCategory}
+    onSelectCategory={setSelectedCategory}
+    onSelectTemplate={handleTemplateSelect}
+  />;
+};
+
+// Template Selector UI Component
+interface TemplateSelectorUIProps {
+  categories: Category[];
+  templates: Template[];
+  groupedByCategory: Record<string, Template[]>;
+  selectedCategory: string | null;
+  onSelectCategory: (categoryId: string | null) => void;
+  onSelectTemplate: (template: Template) => void;
+}
+
+const TemplateSelectorUI: React.FC<TemplateSelectorUIProps> = ({
+  categories,
+  templates,
+  groupedByCategory,
+  selectedCategory,
+  onSelectCategory,
+  onSelectTemplate,
+}) => {
+  const currentTemplates = selectedCategory ? groupedByCategory[selectedCategory] || [] : [];
+
   if (categories.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 p-8 flex items-center justify-center">
@@ -172,7 +296,7 @@ const TemplateSelector: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-8">
+    <div className="min-h-screen bg-linear-to-b from-gray-50 to-gray-100 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <header className="text-center mb-12 pt-8">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
@@ -184,7 +308,6 @@ const TemplateSelector: React.FC = () => {
           </p>
         </header>
 
-        {/* Step 1: Choose Category */}
         {!selectedCategory ? (
           <div className="max-w-6xl mx-auto">
             <h2 className="text-2xl font-semibold text-center mb-8 text-gray-700">
@@ -199,7 +322,7 @@ const TemplateSelector: React.FC = () => {
                 return (
                   <button
                     key={category.id}
-                    onClick={() => setSelectedCategory(category.id)}
+                    onClick={() => onSelectCategory(category.id)}
                     className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 text-center group hover:-translate-y-1 border border-gray-100"
                   >
                     <div className="text-5xl mb-6 group-hover:scale-110 transition-transform duration-300">
@@ -224,7 +347,6 @@ const TemplateSelector: React.FC = () => {
               })}
             </div>
             
-            {/* Summary of all templates */}
             <div className="mt-12 p-6 bg-white rounded-xl shadow-md">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
@@ -234,8 +356,8 @@ const TemplateSelector: React.FC = () => {
                   </p>
                 </div>
                 <button
-                  onClick={() => setSelectedCategory('all')}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium"
+                  onClick={() => onSelectCategory('all')}
+                  className="px-6 py-3 bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium"
                 >
                   View All Templates ({templates.length})
                 </button>
@@ -244,9 +366,8 @@ const TemplateSelector: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Back button */}
             <button
-              onClick={() => { setSelectedCategory(null); setSelectedTemplate(null); }}
+              onClick={() => onSelectCategory(null)}
               className="mb-6 text-blue-600 hover:text-blue-800 font-medium flex items-center gap-2 transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -255,7 +376,6 @@ const TemplateSelector: React.FC = () => {
               Back to categories
             </button>
 
-            {/* Step 2: Choose Template */}
             <div className="mb-8">
               <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">
                 {selectedCategory === 'all' 
@@ -284,7 +404,7 @@ const TemplateSelector: React.FC = () => {
                   }
                 </p>
                 <button
-                  onClick={() => setSelectedCategory(null)}
+                  onClick={() => onSelectCategory(null)}
                   className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Back to Categories
@@ -297,10 +417,10 @@ const TemplateSelector: React.FC = () => {
                   return (
                     <div
                       key={tmpl.id || idx}
-                      onClick={() => setSelectedTemplate(tmpl)}
+                      onClick={() => onSelectTemplate(tmpl)}
                       className="bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100"
                     >
-                      <div className="h-64 bg-gradient-to-br from-gray-50 to-gray-100 border-b border-gray-200 relative overflow-hidden">
+                      <div className="h-64 bg-linear-to-br from-gray-50 to-gray-100 border-b border-gray-200 relative overflow-hidden">
                         {tmpl.previewImage ? (
                           <img 
                             src={tmpl.previewImage} 
@@ -335,11 +455,16 @@ const TemplateSelector: React.FC = () => {
                           </p>
                         )}
                         
-                        <button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3.5 rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all group-hover:shadow-lg">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelectTemplate(tmpl);
+                          }}
+                          className="w-full bg-linear-to-r from-blue-600 to-blue-700 text-white py-3.5 rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all group-hover:shadow-lg"
+                        >
                           Use This Template
                         </button>
                         
-                        {/* Preview placeholders if available */}
                         {tmpl.elements && (
                           <div className="mt-4 pt-4 border-t border-gray-100">
                             <p className="text-xs text-gray-500 mb-2">Sample content:</p>
@@ -366,11 +491,10 @@ const TemplateSelector: React.FC = () => {
               </div>
             )}
             
-            {/* View all templates button when viewing a specific category */}
             {selectedCategory !== 'all' && templates.length > 0 && (
               <div className="mt-12 text-center">
                 <button
-                  onClick={() => setSelectedCategory('all')}
+                  onClick={() => onSelectCategory('all')}
                   className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
                 >
                   View All Templates ({templates.length})
@@ -407,7 +531,7 @@ const getCategoryIcon = (categoryName: string): string => {
     return '🎉';
   }
   
-  return '📁'; // Default icon
+  return '📁';
 };
 
-export default TemplateSelector;
+export default TemplatePage;
