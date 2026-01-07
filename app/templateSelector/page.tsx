@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import EventTemplateEditor from '@/app/template/page';
+import EventTemplateEditor from '@/app/components/EventTemplateEditor';
 import { Element } from '@/app/template/page';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';

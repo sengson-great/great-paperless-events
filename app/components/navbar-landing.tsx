@@ -19,7 +19,7 @@ const navLinks = [
 ];
 
 export default function NavbarLanding() {
-  const { user, loading, isAdmin } = useAuth(); // ← isAdmin added
+  const { user, loading, isAdmin } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const activeSection = useActiveSection(['home', 'features', 'about', 'contact']);
@@ -107,7 +107,7 @@ export default function NavbarLanding() {
                 <>
                   {/* Admin Dashboard Button - Only for admins */}
                   {isAdmin && (
-                    <Link href="/admin/dashboard">
+                    <Link href="/admin/public-events">
                       <button className="px-6 py-2.5 bg-linear-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold text-sm hover:from-purple-700 hover:to-pink-700 transition-all hover:shadow-lg">
                         Admin Dashboard
                       </button>

@@ -1,227 +1,457 @@
-// app/admin/public-events/page.tsx
+// app/admin/events/page.tsx
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Trash2, Eye, EyeOff, Loader2, Search, AlertCircle, Calendar, MapPin } from 'lucide-react';
-import Link from 'next/link';
-import { useAuth } from '@/hooks/useAuth';
+import { useState, useEffect } from 'react';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { useAuth } from '@/hooks/useAuth';
+import { 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Eye, 
+  Calendar, 
+  MapPin, 
+  Clock, 
+  CheckCircle,
+  XCircle,
+  Copy,
+  ExternalLink
+} from 'lucide-react';
+import Link from 'next/link';
+import Sidebar from '@/app/components/sidebar';
 
-interface PublicEvent {
+interface AdminEvent {
   id: string;
   title: string;
+  description: string;
   date: string;
-  time?: string;
-  location?: string;
-  createdBy: string;
+  time: string;
+  location: string;
+  isPublic: boolean;
   createdAt: any;
-  elements: any[];
-  eventData: any;
+  createdBy: string;
+  // NEW: Link to existing invitation (optional)
+  invitationId?: string;
 }
 
-const AdminPublicEventsPage: React.FC = () => {
-  const { isAdmin, loading: authLoading } = useAuth();
-  const [events, setEvents] = useState<PublicEvent[]>([]);
+export default function AdminEventsPage() {
+  const { user } = useAuth();
+  const [events, setEvents] = useState<AdminEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<AdminEvent | null>(null);
 
+  // Simple form state
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    date: '',
+    time: '',
+    location: '',
+    isPublic: true
+  });
+
+  // Load events on mount
   useEffect(() => {
-    if (!isAdmin) return;
+    loadEvents();
+  }, []);
 
-    const fetchPublicEvents = async () => {
-      try {
-        setLoading(true);
-        const q = query(
-          collection(db, 'events'),
-          where('isPublic', '==', true)
-        );
-        const snapshot = await getDocs(q);
-        const publicEvents = snapshot.docs.map(doc => ({
+  const loadEvents = async () => {
+    try {
+      setLoading(true);
+      const snapshot = await getDocs(collection(db, 'events'));
+      const eventsData: AdminEvent[] = [];
+      
+      snapshot.forEach((doc) => {
+        eventsData.push({
           id: doc.id,
           ...doc.data()
-        } as PublicEvent));
-        
-        // Sort by newest first
-        publicEvents.sort((a, b) => 
-          b.createdAt?.toDate?.()?.getTime() - a.createdAt?.toDate?.()?.getTime()
-        );
-        
-        setEvents(publicEvents);
-      } catch (err) {
-        console.error('Error fetching public events:', err);
-        alert('Failed to load public events');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPublicEvents();
-  }, [isAdmin]);
-
-  const handleMakePrivate = async (eventId: string) => {
-    if (!confirm('Make this event private? It will no longer be publicly visible.')) return;
-
-    setTogglingId(eventId);
-    try {
-      await updateDoc(doc(db, 'events', eventId), {
-        isPublic: false
+        } as AdminEvent);
       });
-      setEvents(events.filter(e => e.id !== eventId));
-      alert('Event is now private');
-    } catch (err) {
-      alert('Failed to update event');
+
+      setEvents(eventsData);
+    } catch (error) {
+      console.error('Error loading events:', error);
     } finally {
-      setTogglingId(null);
+      setLoading(false);
     }
   };
 
-  const handleDelete = async (eventId: string) => {
-    if (!confirm('Permanently delete this public event? This cannot be undone.')) return;
+  // Handle form submit (Create or Update)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.title.trim()) {
+      alert('Event title is required');
+      return;
+    }
 
-    setDeletingId(eventId);
     try {
-      await deleteDoc(doc(db, 'events', eventId));
-      setEvents(events.filter(e => e.id !== eventId));
-      alert('Event deleted successfully');
-    } catch (err) {
-      alert('Failed to delete event');
-    } finally {
-      setDeletingId(null);
+      const eventData = {
+        ...formData,
+        createdBy: user?.uid || 'admin',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (editingEvent) {
+        // Update event
+        await updateDoc(doc(db, 'events', editingEvent.id), eventData);
+        alert('✅ Event updated!');
+      } else {
+        // Create new event
+        await addDoc(collection(db, 'events'), eventData);
+        alert('✅ Event created!');
+      }
+
+      // Reset and reload
+      resetForm();
+      loadEvents();
+    } catch (error) {
+      console.error('Error saving event:', error);
+      alert('❌ Failed to save event');
     }
   };
 
-  const filteredEvents = events.filter(event =>
-    event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    event.location?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Handle edit
+  const handleEdit = (event: AdminEvent) => {
+    setEditingEvent(event);
+    setFormData({
+      title: event.title,
+      description: event.description || '',
+      date: event.date,
+      time: event.time,
+      location: event.location,
+      isPublic: event.isPublic
+    });
+    setShowForm(true);
+  };
 
-  if (authLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
-        <Loader2 className="animate-spin" size={48} />
-      </div>
-    );
-  }
+  // Handle delete
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this event?')) return;
+    
+    try {
+      await deleteDoc(doc(db, 'events', id));
+      alert('✅ Event deleted!');
+      loadEvents();
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      alert('❌ Failed to delete event');
+    }
+  };
 
-  if (!isAdmin) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <AlertCircle className="mx-auto mb-4 text-red-500" size={64} />
-          <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
-          <p className="text-gray-600">Admin privileges required</p>
-        </div>
-      </div>
-    );
-  }
+  // Copy invitation link
+  const copyInvitationLink = (invitationId: string) => {
+    const link = `${window.location.origin}/invite/${invitationId}`;
+    navigator.clipboard.writeText(link);
+    alert('📋 Link copied to clipboard!');
+  };
+
+  // Reset form
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      date: '',
+      time: '',
+      location: '',
+      isPublic: true
+    });
+    setEditingEvent(null);
+    setShowForm(false);
+  };
+
+  // Format date
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6">
+    <div className="min-h-screen bg-gray-50 flex">
+      <Sidebar />
+    <div className=" bg-gray-50 p-4 w-full">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin: Manage Public Events</h1>
-          <p className="text-gray-600">View and moderate all publicly shared invitations</p>
-        </div>
-
-        {/* Search */}
-        <div className="mb-6">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search by title or location..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+          <h1 className="text-3xl font-bold text-gray-900">Admin Events Management</h1>
+          <p className="text-gray-600 mt-2">Create and manage public events</p>
+          
+          <div className="flex items-center gap-4 mt-6">
+            <button
+              onClick={() => {
+                resetForm();
+                setShowForm(true);
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <Plus size={20} />
+              Add New Event
+            </button>
+            
+            <span className="text-gray-500">
+              {events.length} {events.length === 1 ? 'event' : 'events'} total
+            </span>
           </div>
         </div>
 
-        {/* Loading */}
-        {loading ? (
-          <div className="text-center py-12">
-            <Loader2 className="animate-spin mx-auto mb-4" size={48} />
-            <p className="text-gray-600">Loading public events...</p>
-          </div>
-        ) : filteredEvents.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl shadow">
-            <Eye className="mx-auto text-gray-400 mb-4" size={64} />
-            <h3 className="text-xl font-semibold mb-2">No Public Events</h3>
-            <p className="text-gray-600">
-              {searchTerm ? 'No events match your search' : 'There are no public events yet'}
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEvents.map((event) => (
-              <div key={event.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition">
-                {/* Preview */}
-                <div className="h-48 bg-gray-100 border-b flex items-center justify-center">
-                  <div className="text-center text-gray-500">
-                    <Eye size={32} className="mx-auto mb-2" />
-                    <p className="text-sm">Public Invitation</p>
-                  </div>
+        {/* Form Modal */}
+        {showForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold">
+                    {editingEvent ? 'Edit Event' : 'Create Event'}
+                  </h2>
+                  <button
+                    onClick={resetForm}
+                    className="p-2 hover:bg-gray-100 rounded-lg"
+                  >
+                    ✕
+                  </button>
                 </div>
 
-                {/* Content */}
-                <div className="p-6">
-                  <h3 className="font-bold text-lg mb-2 line-clamp-2">{event.title || 'Untitled Event'}</h3>
-                  
-                  <div className="space-y-2 text-sm text-gray-600 mb-4">
-                    {event.date && (
-                      <p className="flex items-center gap-2">
-                        <Calendar size={16} />
-                        {new Date(event.date).toLocaleDateString()}
-                      </p>
-                    )}
-                    {event.location && (
-                      <p className="flex items-center gap-2">
-                        <MapPin size={16} />
-                        {event.location}
-                      </p>
-                    )}
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Event Title *</label>
+                    <input
+                      type="text"
+                      value={formData.title}
+                      onChange={(e) => setFormData({...formData, title: e.target.value})}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      placeholder="Enter event title"
+                      required
+                    />
                   </div>
 
-                  <div className="flex items-center justify-between pt-4 border-t">
-                    <div className="flex gap-2">
-                      <Link href={`/event/${event.id}`} target="_blank">
-                        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
-                          View Public
-                        </button>
-                      </Link>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Description</label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      placeholder="Enter event description"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Date</label>
+                      <input
+                        type="date"
+                        value={formData.date}
+                        onChange={(e) => setFormData({...formData, date: e.target.value})}
+                        className="w-full px-3 py-2 border rounded-lg"
+                      />
                     </div>
-
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleMakePrivate(event.id)}
-                        disabled={togglingId === event.id}
-                        className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
-                        title="Make Private"
-                      >
-                        {togglingId === event.id ? <Loader2 className="animate-spin" size={18} /> : <EyeOff size={18} />}
-                      </button>
-
-                      <button
-                        onClick={() => handleDelete(event.id)}
-                        disabled={deletingId === event.id}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                        title="Delete Permanently"
-                      >
-                        {deletingId === event.id ? <Loader2 className="animate-spin" size={18} /> : <Trash2 size={18} />}
-                      </button>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Time</label>
+                      <input
+                        type="time"
+                        value={formData.time}
+                        onChange={(e) => setFormData({...formData, time: e.target.value})}
+                        className="w-full px-3 py-2 border rounded-lg"
+                      />
                     </div>
                   </div>
-                </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Location</label>
+                    <input
+                      type="text"
+                      value={formData.location}
+                      onChange={(e) => setFormData({...formData, location: e.target.value})}
+                      className="w-full px-3 py-2 border rounded-lg"
+                      placeholder="Enter event location"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <input
+                      type="checkbox"
+                      id="isPublic"
+                      checked={formData.isPublic}
+                      onChange={(e) => setFormData({...formData, isPublic: e.target.checked})}
+                      className="h-5 w-5"
+                    />
+                    <label htmlFor="isPublic" className="cursor-pointer">
+                      <div className="font-medium">Public Event</div>
+                      <p className="text-sm text-gray-600">Visible to everyone</p>
+                    </label>
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={resetForm}
+                      className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                      {editingEvent ? 'Update' : 'Create'}
+                    </button>
+                  </div>
+                </form>
               </div>
-            ))}
+            </div>
           </div>
         )}
+
+        {/* Events Table */}
+        <div className="bg-white rounded-xl shadow overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Event</th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Date & Time</th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Status</th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Actions</th>
+                </tr>
+              </thead>
+              
+              <tbody className="divide-y divide-gray-200">
+                {loading ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-8 text-center">
+                      <div className="flex justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      </div>
+                    </td>
+                  </tr>
+                ) : events.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-12 text-center">
+                      <div className="text-gray-500">
+                        <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                        <p className="text-lg">No events yet</p>
+                        <p className="text-sm mt-2">Create your first event to get started</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  events.map((event) => (
+                    <tr key={event.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <div>
+                          <div className="font-medium text-gray-900">{event.title}</div>
+                          <div className="text-sm text-gray-500 mt-1">
+                            📍 {event.location}
+                          </div>
+                        </div>
+                      </td>
+                      
+                      <td className="px-6 py-4">
+                        <div className="text-sm">
+                          <div className="flex items-center gap-2">
+                            <Calendar size={14} className="text-gray-400" />
+                            <span>{event.date ? formatDate(event.date) : 'No date'}</span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Clock size={14} className="text-gray-400" />
+                            <span>{event.time || 'No time'}</span>
+                          </div>
+                        </div>
+                      </td>
+                      
+                      <td className="px-6 py-4">
+                        {event.isPublic ? (
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <CheckCircle size={12} />
+                            Public
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            <XCircle size={12} />
+                            Private
+                          </span>
+                        )}
+                      </td>
+                      
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleEdit(event)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                            title="Edit event"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          
+                          <button
+                            onClick={() => handleDelete(event.id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                            title="Delete event"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                          
+                          {event.invitationId && (
+                            <>
+                              <button
+                                onClick={() => copyInvitationLink(event.invitationId!)}
+                                className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg"
+                                title="Copy invitation link"
+                              >
+                                <Copy size={16} />
+                              </button>
+                              
+                              <Link
+                                href={`/invite/${event.invitationId}`}
+                                target="_blank"
+                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
+                                title="View invitation"
+                              >
+                                <ExternalLink size={16} />
+                              </Link>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Simple Stats */}
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white p-4 rounded-lg shadow">
+            <div className="text-2xl font-bold text-blue-600">{events.length}</div>
+            <div className="text-sm text-gray-600">Total Events</div>
+          </div>
+          
+          <div className="bg-white p-4 rounded-lg shadow">
+            <div className="text-2xl font-bold text-green-600">
+              {events.filter(e => e.isPublic).length}
+            </div>
+            <div className="text-sm text-gray-600">Public Events</div>
+          </div>
+          
+          <div className="bg-white p-4 rounded-lg shadow">
+            <div className="text-2xl font-bold text-gray-600">
+              {events.filter(e => !e.isPublic).length}
+            </div>
+            <div className="text-sm text-gray-600">Private Events</div>
+          </div>
+        </div>
       </div>
     </div>
+    </div>
   );
-};
-
-export default AdminPublicEventsPage;
+}

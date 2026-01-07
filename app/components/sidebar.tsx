@@ -15,13 +15,15 @@ export default function Sidebar() {
     return (
         <div className="w-64 bg-white shadow-lg">
         <div className="p-6">
-            <img src={Logo.src} alt="Logo" className=" w-full"/>
+          <Link href="/">
+              <img src={Logo.src} alt="Logo" className=" w-full"/>
+          </Link>
         </div>
 
         <nav className="mt-6">
-          <Link href={"/admin/dashboard"}
+          <Link href={"/admin/public-events"}
             className={`w-full flex items-center px-6 py-3 text-gray-700! no-underline! hover:bg-gray-100 ${
-              isActive('/admin/dashboard') ? 'text-white! bg-blue-400 hover:bg-blue-400! hover:text-white!' : ''
+              isActive('/admin/public-events') ? 'text-white! bg-blue-400 hover:bg-blue-400! hover:text-white!' : ''
             }`}
           >
             <Home size={20} className="mr-3" />

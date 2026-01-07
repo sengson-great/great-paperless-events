@@ -521,61 +521,57 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
     setActiveTab('properties');
   };
 
-  const saveAndGenerateLink = async () => {
-    if (!user) {
-      alert('Please sign in to save your invitation');
-      return;
-    }
-  
-    if (!eventData.title.trim()) {
-      alert('Event title is required');
-      return;
-    }
-  
-    setSavingInvitation(true);
-    try {
-      // 1. First, create the EVENT document
-      const eventDataToSave = {
-        title: eventData.title.trim(),
-        description: eventData.description?.trim() || '',
-        date: eventData.date,
-        time: eventData.time.trim(),
-        location: eventData.location.trim(),
-        elements,
-        createdBy: user.uid,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        isPublic: isPublic, // your toggle
-      };
-  
-      const eventRef = await addDoc(collection(db, 'events'), eventDataToSave);
-  
-      // 2. Then create the INVITATION document
-      const invitationData = {
-        eventId: eventRef.id,
-        elements,
-        eventData,
-        createdBy: user.uid,
-        createdAt: serverTimestamp(),
-      };
-  
-      const invitationRef = await addDoc(collection(db, 'invitations'), invitationData);
-  
-      // 3. CRITICAL: Update the event with the invitationId
-      await updateDoc(eventRef, {
-        invitationId: invitationRef.id
-      });
-  
-      // 4. Set state and show modal
-      setInvitationId(invitationRef.id);
-      setShowShareModal(true);
-      alert('Event created and invitation saved!');
-    } catch (err: any) {
-      console.error('Error saving:', err);
-      alert(`Failed to save: ${err.message}`);
-    } finally {
-      setSavingInvitation(false);
-    }
+    const saveAndGenerateLink = async () => {
+        if (!user) {
+        alert('Please sign in to save your invitation');
+        return;
+        }
+    
+        setSavingInvitation(true);
+        try {
+        // 1. Save the invitation (existing code)
+        const invitationData = {
+            eventId: '', // We'll update this
+            elements,
+            eventData,
+            createdBy: user.uid,
+            createdAt: serverTimestamp(),
+            isPublic: isPublic,
+            privatePin: !isPublic && privatePin ? privatePin : null,
+        };
+    
+        const invitationRef = await addDoc(collection(db, 'invitations'), invitationData);
+    
+        // 2. ALSO save a simple event record to the 'events' collection
+        const simpleEventData = {
+            title: eventData.title,
+            description: eventData.description || '',
+            date: eventData.date,
+            time: eventData.time,
+            location: eventData.location,
+            isPublic: isPublic,
+            createdBy: user.uid,
+            createdAt: serverTimestamp(),
+            invitationId: invitationRef.id, // Link to the invitation
+        };
+    
+        const eventRef = await addDoc(collection(db, 'events'), simpleEventData);
+    
+        // 3. Update the invitation with event ID
+        await updateDoc(invitationRef, {
+            eventId: eventRef.id
+        });
+    
+        setInvitationId(invitationRef.id);
+        setShowShareModal(true);
+        alert('✅ Event and invitation saved!');
+        
+        } catch (err: any) {
+        console.error('Error saving:', err);
+        alert(`❌ Failed to save: ${err.message}`);
+        } finally {
+        setSavingInvitation(false);
+        }
   };
 
   const updateElement = (id: number, updates: Partial<Element>) => {
