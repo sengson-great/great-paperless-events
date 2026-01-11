@@ -13,6 +13,7 @@ import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { ArrowRight, Sparkles, Leaf, Calendar, Heart, Send, Zap, Share2, Globe } from "lucide-react";
+import TelegramNewsletterSimple from "./components/TelegramNewsletterSimple";
 
 export default function HomePage() {
   const { user, loading } = useAuth();
@@ -254,6 +255,12 @@ export default function HomePage() {
           toggleReadMoreVisibity={handleToggleReadMoreVisibility}
         />
       </div>
+
+      <section className="py-12">
+        <div className="container mx-auto px-4">
+          <TelegramNewsletterSimple />
+        </div>
+      </section>
 
       {/* Footer */}
       <div id="contact">

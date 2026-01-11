@@ -126,6 +126,11 @@ export default function NavbarLanding() {
                   >
                     Logout
                   </button>
+                  <Link href="/chat"
+                    className="px-6 py-2.5 bg-linear-to-r from-blue-500 to-teal-600 text-white rounded-lg font-medium hover:from-red-600 hover:to-pink-700 transition"
+                  >
+                    AI
+                  </Link>
                 </>
               ) : (
                 <Link href="/auth/signin">
@@ -202,6 +207,11 @@ export default function NavbarLanding() {
                   >
                     Logout
                   </button>
+                  <Link href="/chat"
+                    className="w-full px-6 py-3 bg-linear-to-r from-blue-500 to-teal-600 text-white rounded-lg font-medium hover:from-red-600 hover:to-pink-700 transition"
+                  >
+                    AI
+                  </Link>
                 </>
               ) : (
                 <Link href="/auth/signin" className="block">

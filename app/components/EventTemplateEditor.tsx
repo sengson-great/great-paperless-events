@@ -1,33 +1,38 @@
 "use client";
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
-import { 
-  Plus, 
-  Type, 
-  ImageIcon, 
-  Square, 
-  Circle, 
-  Trash2, 
-  Download, 
-  Upload, 
-  Lock, 
-  Unlock, 
-  ZoomIn, 
-  ZoomOut, 
+import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
+import {
+  Plus,
+  Type,
+  ImageIcon,
+  Square,
+  Circle,
+  Trash2,
+  Download,
+  Upload,
+  Lock,
+  Unlock,
+  ZoomIn,
+  ZoomOut,
   Loader2,
   X,
   AlertCircle,
   GripVertical,
-  Move
-} from 'lucide-react';
-import QRCode from 'react-qr-code';
-import { addDoc, collection, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '@/lib/firebase';
-import { useAuth } from '@/hooks/useAuth';
+  Move,
+} from "lucide-react";
+import QRCode from "react-qr-code";
+import {
+  addDoc,
+  collection,
+  serverTimestamp,
+  updateDoc,
+} from "firebase/firestore";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { db, storage } from "@/lib/firebase";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface Element {
   id: number;
-  type: 'text' | 'image' | 'rectangle' | 'circle';
+  type: "text" | "image" | "rectangle" | "circle";
   x: number;
   y: number;
   width: number;
@@ -59,26 +64,33 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
 }) => {
   const [elements, setElements] = useState<Element[]>(initialElements);
   const [eventData, setEventData] = useState<EventData>({
-    title: 'Annual Tech Conference',
-    date: '2025-03-15',
-    time: '9:00 AM',
-    location: 'Convention Center',
+    title: "Annual Tech Conference",
+    date: "2025-03-15",
+    time: "9:00 AM",
+    location: "Convention Center",
     ...initialEventData,
   });
 
-  const [selectedTool, setSelectedTool] = useState<'text' | 'image' | 'rectangle' | 'circle' | null>(null);
+  const [selectedTool, setSelectedTool] = useState<
+    "text" | "image" | "rectangle" | "circle" | null
+  >(null);
   const [selectedElement, setSelectedElement] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0, elementX: 0, elementY: 0 });
-  const [isResizing, setIsResizing] = useState(false);
-  const [resizeStart, setResizeStart] = useState({ 
-    x: 0, 
-    y: 0, 
-    width: 0, 
-    height: 0, 
-    elementX: 0, 
+  const [dragStart, setDragStart] = useState({
+    x: 0,
+    y: 0,
+    elementX: 0,
     elementY: 0,
-    corner: '' 
+  });
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeStart, setResizeStart] = useState({
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    elementX: 0,
+    elementY: 0,
+    corner: "",
   });
   const [zoom, setZoom] = useState(1);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -90,24 +102,28 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
   const [invitationId, setInvitationId] = useState<string | null>(null);
   const [savingInvitation, setSavingInvitation] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'tools' | 'properties'>('tools');
+  const [activeTab, setActiveTab] = useState<"tools" | "properties">("tools");
   const [uploadingImage, setUploadingImage] = useState(false);
   const [showImageUploadModal, setShowImageUploadModal] = useState(false);
-  const [tempImageUrl, setTempImageUrl] = useState<string>('');
-  const [imageUploadMethod, setImageUploadMethod] = useState<'file' | 'url'>('url');
+  const [tempImageUrl, setTempImageUrl] = useState<string>("");
+  const [imageUploadMethod, setImageUploadMethod] = useState<"file" | "url">(
+    "url"
+  );
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isPublic, setIsPublic] = useState(false);
-  const [privatePin, setPrivatePin] = useState('');
+  const [privatePin, setPrivatePin] = useState("");
 
-  const shareUrl = invitationId ? `${window.location.origin}/invite/${invitationId}` : '';
+  const shareUrl = invitationId
+    ? `${window.location.origin}/invite/${invitationId}`
+    : "";
 
   const tools = [
-    { id: 'text' as const, icon: Type, label: 'Text' },
-    { id: 'image' as const, icon: ImageIcon, label: 'Image' },
-    { id: 'rectangle' as const, icon: Square, label: 'Rectangle' },
-    { id: 'circle' as const, icon: Circle, label: 'Circle' },
+    { id: "text" as const, icon: Type, label: "Text" },
+    { id: "image" as const, icon: ImageIcon, label: "Image" },
+    { id: "rectangle" as const, icon: Square, label: "Rectangle" },
+    { id: "circle" as const, icon: Circle, label: "Circle" },
   ];
 
   // Add global mouse event listeners for dragging and resizing
@@ -130,19 +146,19 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
       }
     };
 
-    window.addEventListener('mousemove', handleGlobalMouseMove);
-    window.addEventListener('mouseup', handleGlobalMouseUp);
+    window.addEventListener("mousemove", handleGlobalMouseMove);
+    window.addEventListener("mouseup", handleGlobalMouseUp);
 
     return () => {
-      window.removeEventListener('mousemove', handleGlobalMouseMove);
-      window.removeEventListener('mouseup', handleGlobalMouseUp);
+      window.removeEventListener("mousemove", handleGlobalMouseMove);
+      window.removeEventListener("mouseup", handleGlobalMouseUp);
     };
   }, [isDragging, isResizing, selectedElement, zoom]);
 
   const handleDrag = (e: MouseEvent) => {
     if (!canvasRef.current || !selectedElement) return;
-    
-    const element = elements.find(el => el.id === selectedElement);
+
+    const element = elements.find((el) => el.id === selectedElement);
     if (!element || element.locked) return;
 
     const rect = canvasRef.current.getBoundingClientRect();
@@ -153,16 +169,22 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
     const canvasWidth = canvasRef.current.offsetWidth / scale;
     const canvasHeight = canvasRef.current.offsetHeight / scale;
 
-    const newX = Math.max(0, Math.min(canvasWidth - element.width, dragStart.elementX + deltaX));
-    const newY = Math.max(0, Math.min(canvasHeight - element.height, dragStart.elementY + deltaY));
+    const newX = Math.max(
+      0,
+      Math.min(canvasWidth - element.width, dragStart.elementX + deltaX)
+    );
+    const newY = Math.max(
+      0,
+      Math.min(canvasHeight - element.height, dragStart.elementY + deltaY)
+    );
 
     updateElement(selectedElement, { x: newX, y: newY });
   };
 
   const handleResize = (e: MouseEvent) => {
     if (!canvasRef.current || !selectedElement || !isResizing) return;
-    
-    const element = elements.find(el => el.id === selectedElement);
+
+    const element = elements.find((el) => el.id === selectedElement);
     if (!element || element.locked) return;
 
     const rect = canvasRef.current.getBoundingClientRect();
@@ -179,21 +201,21 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
     let newHeight = element.height;
 
     switch (resizeStart.corner) {
-      case 'se': // Bottom-right
+      case "se": // Bottom-right
         newWidth = Math.max(50, resizeStart.width + deltaX);
         newHeight = Math.max(50, resizeStart.height + deltaY);
         break;
-      case 'sw': // Bottom-left
+      case "sw": // Bottom-left
         newWidth = Math.max(50, resizeStart.width - deltaX);
         newHeight = Math.max(50, resizeStart.height + deltaY);
         newX = Math.max(0, resizeStart.elementX + deltaX);
         break;
-      case 'ne': // Top-right
+      case "ne": // Top-right
         newWidth = Math.max(50, resizeStart.width + deltaX);
         newHeight = Math.max(50, resizeStart.height - deltaY);
         newY = Math.max(0, resizeStart.elementY + deltaY);
         break;
-      case 'nw': // Top-left
+      case "nw": // Top-left
         newWidth = Math.max(50, resizeStart.width - deltaX);
         newHeight = Math.max(50, resizeStart.height - deltaY);
         newX = Math.max(0, resizeStart.elementX + deltaX);
@@ -217,43 +239,47 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
       x: newX,
       y: newY,
       width: newWidth,
-      height: newHeight
+      height: newHeight,
     });
   };
 
   const startDrag = (e: React.MouseEvent, elementId: number) => {
     e.stopPropagation();
-    const element = elements.find(el => el.id === elementId);
+    const element = elements.find((el) => el.id === elementId);
     if (!element || element.locked) return;
 
     setSelectedElement(elementId);
     setIsDragging(true);
-    
+
     if (canvasRef.current) {
       const rect = canvasRef.current.getBoundingClientRect();
       const scale = zoom;
-      
+
       setDragStart({
         x: e.clientX,
         y: e.clientY,
         elementX: element.x,
-        elementY: element.y
+        elementY: element.y,
       });
     }
   };
 
-  const startResize = (e: React.MouseEvent, elementId: number, corner: string) => {
+  const startResize = (
+    e: React.MouseEvent,
+    elementId: number,
+    corner: string
+  ) => {
     e.stopPropagation();
-    const element = elements.find(el => el.id === elementId);
+    const element = elements.find((el) => el.id === elementId);
     if (!element || element.locked) return;
 
     setSelectedElement(elementId);
     setIsResizing(true);
-    
+
     if (canvasRef.current) {
       const rect = canvasRef.current.getBoundingClientRect();
       const scale = zoom;
-      
+
       setResizeStart({
         x: e.clientX,
         y: e.clientY,
@@ -261,7 +287,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
         height: element.height,
         elementX: element.x,
         elementY: element.y,
-        corner: corner
+        corner: corner,
       });
     }
   };
@@ -270,25 +296,26 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
   const uploadImageToFirebase = async (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       if (!user) {
-        reject(new Error('Please sign in to upload images'));
+        reject(new Error("Please sign in to upload images"));
         return;
       }
 
       const timestamp = Date.now();
-      const fileExtension = file.name.split('.').pop();
+      const fileExtension = file.name.split(".").pop();
       const filename = `images/${user.uid}/${timestamp}.${fileExtension}`;
       const storageRef = ref(storage, filename);
-      
+
       const uploadTask = uploadBytesResumable(storageRef, file);
-      
+
       uploadTask.on(
-        'state_changed',
+        "state_changed",
         (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
           setUploadProgress(progress);
         },
         (error) => {
-          console.error('Upload error:', error);
+          console.error("Upload error:", error);
           setUploadError(`Upload failed: ${error.message}`);
           reject(error);
         },
@@ -321,17 +348,19 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
   };
 
   // Handle image file upload
-  const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.match('image.*')) {
-      alert('Please select an image file (JPEG, PNG, GIF, etc.)');
+    if (!file.type.match("image.*")) {
+      alert("Please select an image file (JPEG, PNG, GIF, etc.)");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image size should be less than 5MB');
+      alert("Image size should be less than 5MB");
       return;
     }
 
@@ -346,26 +375,30 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
         imageUrl = await uploadImageToFirebase(file);
       } else {
         imageUrl = await convertImageToBase64(file);
-        alert('Note: Image stored locally. Sign in to save images permanently.');
+        alert(
+          "Note: Image stored locally. Sign in to save images permanently."
+        );
       }
 
       createImageElement(imageUrl);
       setShowImageUploadModal(false);
     } catch (error: any) {
-      console.error('Error uploading image:', error);
-      
+      console.error("Error uploading image:", error);
+
       try {
         const base64Image = await convertImageToBase64(file);
         createImageElement(base64Image);
         setShowImageUploadModal(false);
-        alert('Uploaded locally. Firebase upload failed: ' + error.message);
+        alert("Uploaded locally. Firebase upload failed: " + error.message);
       } catch (fallbackError) {
-        setUploadError(`Upload failed: ${error.message}. Try using URL method.`);
+        setUploadError(
+          `Upload failed: ${error.message}. Try using URL method.`
+        );
       }
     } finally {
       setUploadingImage(false);
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
@@ -373,28 +406,39 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
   // Handle URL image input
   const handleUrlImageSubmit = () => {
     if (!tempImageUrl.trim()) {
-      alert('Please enter an image URL');
+      alert("Please enter an image URL");
       return;
     }
 
     try {
       new URL(tempImageUrl);
-      
-      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
-      const isImageUrl = imageExtensions.some(ext => 
+
+      const imageExtensions = [
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".gif",
+        ".webp",
+        ".svg",
+        ".bmp",
+      ];
+      const isImageUrl = imageExtensions.some((ext) =>
         tempImageUrl.toLowerCase().includes(ext)
       );
-      
-      if (!isImageUrl && !confirm('This might not be an image URL. Continue anyway?')) {
+
+      if (
+        !isImageUrl &&
+        !confirm("This might not be an image URL. Continue anyway?")
+      ) {
         return;
       }
 
       createImageElement(tempImageUrl);
       setShowImageUploadModal(false);
-      setTempImageUrl('');
+      setTempImageUrl("");
       setImagePreview(null);
     } catch (error) {
-      alert('Please enter a valid URL (e.g., https://example.com/image.jpg)');
+      alert("Please enter a valid URL (e.g., https://example.com/image.jpg)");
     }
   };
 
@@ -402,22 +446,22 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
   const createImageElement = (imageUrl: string) => {
     const newElement: Element = {
       id: Date.now(),
-      type: 'image',
+      type: "image",
       x: 100,
       y: 100,
       width: 200,
       height: 200,
-      content: '',
+      content: "",
       fontSize: 16,
-      color: '#000000',
-      bgColor: 'transparent',
+      color: "#000000",
+      bgColor: "transparent",
       locked: false,
       imageUrl: imageUrl,
     };
     setElements([...elements, newElement]);
     setSelectedElement(newElement.id);
     setSelectedTool(null);
-    setActiveTab('properties');
+    setActiveTab("properties");
   };
 
   // Update existing element's image
@@ -425,7 +469,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
     if (selectedElement !== null) {
       updateElement(selectedElement, { imageUrl });
       setShowImageUploadModal(false);
-      setTempImageUrl('');
+      setTempImageUrl("");
       setImagePreview(null);
     }
   };
@@ -434,24 +478,24 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
   const handleImageToolClick = () => {
     setShowImageUploadModal(true);
     setImagePreview(null);
-    setImageUploadMethod('url');
-    setTempImageUrl('');
+    setImageUploadMethod("url");
+    setTempImageUrl("");
     setUploadError(null);
   };
 
   // Preview URL image
   const previewImageUrl = () => {
     if (!tempImageUrl.trim()) {
-      alert('Please enter an image URL');
+      alert("Please enter an image URL");
       return;
     }
-    
+
     try {
       new URL(tempImageUrl);
       setImagePreview(tempImageUrl);
       setUploadError(null);
     } catch (error) {
-      setUploadError('Please enter a valid URL');
+      setUploadError("Please enter a valid URL");
     }
   };
 
@@ -466,23 +510,26 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
   // Calculate responsive canvas dimensions
   const calculateCanvasDimensions = () => {
     if (!containerRef.current) return { width: 800, height: 1000 };
-    
+
     const containerWidth = containerRef.current.clientWidth - 40;
     const containerHeight = containerRef.current.clientHeight - 40;
-    
+
     const width = Math.min(containerWidth, 800);
     const height = width * 1.25;
-    
+
     return { width, height };
   };
 
-  const [canvasDimensions, setCanvasDimensions] = useState({ width: 800, height: 1000 });
+  const [canvasDimensions, setCanvasDimensions] = useState({
+    width: 800,
+    height: 1000,
+  });
 
   useLayoutEffect(() => {
     const updateCanvasDimensions = () => {
       const dimensions = calculateCanvasDimensions();
       setCanvasDimensions(dimensions);
-      
+
       if (window.innerWidth < 768) {
         const scale = dimensions.width / 800;
         setZoom(Math.max(0.5, Math.min(1, scale)));
@@ -490,109 +537,117 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
     };
 
     updateCanvasDimensions();
-    window.addEventListener('resize', updateCanvasDimensions);
-    
-    return () => window.removeEventListener('resize', updateCanvasDimensions);
+    window.addEventListener("resize", updateCanvasDimensions);
+
+    return () => window.removeEventListener("resize", updateCanvasDimensions);
   }, []);
 
-  const addElement = (type: 'text' | 'image' | 'rectangle' | 'circle') => {
-    if (type === 'image') {
+  const addElement = (type: "text" | "image" | "rectangle" | "circle") => {
+    if (type === "image") {
       handleImageToolClick();
       return;
     }
-    
+
     const newElement: Element = {
       id: Date.now(),
       type,
       x: 100,
       y: 100,
-      width: type === 'text' ? 200 : 150,
-      height: type === 'text' ? 50 : 150,
-      content: type === 'text' ? 'Double click to edit' : '',
+      width: type === "text" ? 200 : 150,
+      height: type === "text" ? 50 : 150,
+      content: type === "text" ? "Double click to edit" : "",
       fontSize: 16,
-      color: '#000000',
-      bgColor: type === 'text' ? 'transparent' : '#e5e7eb',
+      color: "#000000",
+      bgColor: type === "text" ? "transparent" : "#e5e7eb",
       locked: false,
       imageUrl: null,
     };
     setElements([...elements, newElement]);
     setSelectedElement(newElement.id);
     setSelectedTool(null);
-    setActiveTab('properties');
+    setActiveTab("properties");
   };
 
-    const saveAndGenerateLink = async () => {
-        if (!user) {
-        alert('Please sign in to save your invitation');
-        return;
-        }
-    
-        setSavingInvitation(true);
-        try {
-        // 1. Save the invitation (existing code)
-        const invitationData = {
-            eventId: '', // We'll update this
-            elements,
-            eventData,
-            createdBy: user.uid,
-            createdAt: serverTimestamp(),
-            isPublic: isPublic,
-            privatePin: !isPublic && privatePin ? privatePin : null,
-        };
-    
-        const invitationRef = await addDoc(collection(db, 'invitations'), invitationData);
-    
-        // 2. ALSO save a simple event record to the 'events' collection
-        const simpleEventData = {
-            title: eventData.title,
-            description: eventData.description || '',
-            date: eventData.date,
-            time: eventData.time,
-            location: eventData.location,
-            isPublic: isPublic,
-            createdBy: user.uid,
-            createdAt: serverTimestamp(),
-            invitationId: invitationRef.id, // Link to the invitation
-        };
-    
-        const eventRef = await addDoc(collection(db, 'events'), simpleEventData);
-    
-        // 3. Update the invitation with event ID
-        await updateDoc(invitationRef, {
-            eventId: eventRef.id
-        });
-    
-        setInvitationId(invitationRef.id);
-        setShowShareModal(true);
-        alert('✅ Event and invitation saved!');
-        
-        } catch (err: any) {
-        console.error('Error saving:', err);
-        alert(`❌ Failed to save: ${err.message}`);
-        } finally {
-        setSavingInvitation(false);
-        }
+  const saveAndGenerateLink = async () => {
+    if (!user) {
+      alert("Please sign in to save your invitation");
+      return;
+    }
+
+    setSavingInvitation(true);
+    try {
+      // 1. Save the invitation (existing code)
+      const invitationData = {
+        eventId: "", // We'll update this
+        elements,
+        eventData,
+        createdBy: user.uid,
+        createdAt: serverTimestamp(),
+        isPublic: isPublic,
+        privatePin: !isPublic && privatePin ? privatePin : null,
+      };
+
+      const invitationRef = await addDoc(
+        collection(db, "invitations"),
+        invitationData
+      );
+
+      // 2. ALSO save a simple event record to the 'events' collection
+      const simpleEventData = {
+        title: eventData.title,
+        description: eventData.description || "",
+        date: eventData.date,
+        time: eventData.time,
+        location: eventData.location,
+        isPublic: isPublic,
+        createdBy: user.uid,
+        createdAt: serverTimestamp(),
+        invitationId: invitationRef.id, // Link to the invitation
+      };
+
+      const eventRef = await addDoc(collection(db, "events"), simpleEventData);
+
+      // 3. Update the invitation with event ID
+      await updateDoc(invitationRef, {
+        eventId: eventRef.id,
+      });
+
+      setInvitationId(invitationRef.id);
+      setShowShareModal(true);
+      alert("✅ Event and invitation saved!");
+    } catch (err: any) {
+      console.error("Error saving:", err);
+      alert(`❌ Failed to save: ${err.message}`);
+    } finally {
+      setSavingInvitation(false);
+    }
   };
 
   const updateElement = (id: number, updates: Partial<Element>) => {
-    setElements(elements.map(el => (el.id === id ? { ...el, ...updates } : el)));
+    setElements(
+      elements.map((el) => (el.id === id ? { ...el, ...updates } : el))
+    );
   };
 
   const deleteElement = () => {
     if (selectedElement !== null) {
-      setElements(elements.filter(el => el.id !== selectedElement));
+      setElements(elements.filter((el) => el.id !== selectedElement));
       setSelectedElement(null);
-      setActiveTab('tools');
+      setActiveTab("tools");
     }
   };
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (selectedTool === 'image' && e.target === canvasRef.current) {
+    if (selectedTool === "image" && e.target === canvasRef.current) {
       setShowImageUploadModal(true);
       return;
     }
-    
-    if (selectedTool && selectedTool !== 'image' && e.target === canvasRef.current) {
+
+    if (
+      selectedTool &&
+      selectedTool !== "image" &&
+      e.target === canvasRef.current
+    ) {
       const rect = canvasRef.current!.getBoundingClientRect();
       const scale = zoom;
       const x = (e.clientX - rect.left) / scale;
@@ -603,28 +658,28 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
         type: selectedTool,
         x,
         y,
-        width: selectedTool === 'text' ? 200 : 150,
-        height: selectedTool === 'text' ? 50 : 150,
-        content: selectedTool === 'text' ? 'Double click to edit' : '',
+        width: selectedTool === "text" ? 200 : 150,
+        height: selectedTool === "text" ? 50 : 150,
+        content: selectedTool === "text" ? "Double click to edit" : "",
         fontSize: 16,
-        color: '#000000',
-        bgColor: selectedTool === 'text' ? 'transparent' : '#e5e7eb',
+        color: "#000000",
+        bgColor: selectedTool === "text" ? "transparent" : "#e5e7eb",
         locked: false,
         imageUrl: null,
       };
       setElements([...elements, newElement]);
       setSelectedElement(newElement.id);
       setSelectedTool(null);
-      setActiveTab('properties');
+      setActiveTab("properties");
     }
-    
+
     // Deselect if clicking on canvas background
     if (e.target === canvasRef.current) {
       setSelectedElement(null);
     }
   };
 
-  const selectedEl = elements.find(el => el.id === selectedElement);
+  const selectedEl = elements.find((el) => el.id === selectedElement);
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -641,29 +696,37 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
             </button>
 
             <h3 className="text-xl font-bold mb-4 text-center">
-              {selectedElement !== null ? 'Change Image' : 'Add Image'}
+              {selectedElement !== null ? "Change Image" : "Add Image"}
             </h3>
 
             {/* Upload Method Tabs */}
             <div className="flex border-b border-gray-200 mb-6">
               <button
-                onClick={() => !uploadingImage && setImageUploadMethod('url')}
+                onClick={() => !uploadingImage && setImageUploadMethod("url")}
                 disabled={uploadingImage}
-                className={`flex-1 py-3 font-medium ${imageUploadMethod === 'url' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'} ${uploadingImage ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`flex-1 py-3 font-medium ${
+                  imageUploadMethod === "url"
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-500"
+                } ${uploadingImage ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 From URL
               </button>
               <button
-                onClick={() => !uploadingImage && setImageUploadMethod('file')}
+                onClick={() => !uploadingImage && setImageUploadMethod("file")}
                 disabled={uploadingImage}
-                className={`flex-1 py-3 font-medium ${imageUploadMethod === 'file' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'} ${uploadingImage ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`flex-1 py-3 font-medium ${
+                  imageUploadMethod === "file"
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-500"
+                } ${uploadingImage ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 Upload File
               </button>
             </div>
 
             {/* File Upload Method */}
-            {imageUploadMethod === 'file' ? (
+            {imageUploadMethod === "file" ? (
               <div className="space-y-4">
                 {uploadError && (
                   <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg flex items-start gap-2">
@@ -675,14 +738,18 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                 {uploadingImage ? (
                   <div className="text-center py-8">
                     <Loader2 className="animate-spin mx-auto mb-4" size={32} />
-                    <p className="text-gray-700 font-medium mb-2">Uploading Image...</p>
+                    <p className="text-gray-700 font-medium mb-2">
+                      Uploading Image...
+                    </p>
                     <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
-                      <div 
+                      <div
                         className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
                         style={{ width: `${uploadProgress}%` }}
                       ></div>
                     </div>
-                    <p className="text-sm text-gray-600">{Math.round(uploadProgress)}% uploaded</p>
+                    <p className="text-sm text-gray-600">
+                      {Math.round(uploadProgress)}% uploaded
+                    </p>
                     {!user && (
                       <p className="text-xs text-yellow-600 mt-2">
                         Not signed in. Image will be stored locally.
@@ -698,8 +765,13 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                 ) : (
                   <>
                     <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-500 transition-colors">
-                      <Upload className="mx-auto mb-4 text-gray-400" size={48} />
-                      <p className="text-gray-600 mb-2">Click to select image file</p>
+                      <Upload
+                        className="mx-auto mb-4 text-gray-400"
+                        size={48}
+                      />
+                      <p className="text-gray-600 mb-2">
+                        Click to select image file
+                      </p>
                       <p className="text-sm text-gray-500 mb-4">
                         JPG, PNG, GIF (max 5MB)
                       </p>
@@ -723,11 +795,11 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                         Select Image
                       </label>
                     </div>
-                    
+
                     <div className="text-center">
                       <button
                         onClick={() => {
-                          setImageUploadMethod('url');
+                          setImageUploadMethod("url");
                           setUploadError(null);
                         }}
                         className="text-sm text-blue-600 hover:text-blue-800"
@@ -763,14 +835,14 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                     />
                     {tempImageUrl && (
                       <button
-                        onClick={() => setTempImageUrl('')}
+                        onClick={() => setTempImageUrl("")}
                         className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                       >
                         <X size={18} />
                       </button>
                     )}
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={previewImageUrl}
@@ -794,13 +866,13 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                   <div className="mt-6">
                     <p className="text-sm font-medium mb-2">Preview:</p>
                     <div className="border rounded-lg p-4">
-                      <img 
-                        src={imagePreview} 
-                        alt="Preview" 
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
                         className="w-full h-48 object-cover rounded"
                         onError={() => {
                           setImagePreview(null);
-                          setUploadError('Failed to load image from URL');
+                          setUploadError("Failed to load image from URL");
                         }}
                       />
                     </div>
@@ -810,7 +882,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                 <div className="text-center pt-2">
                   <button
                     onClick={() => {
-                      setImageUploadMethod('file');
+                      setImageUploadMethod("file");
                       setUploadError(null);
                     }}
                     className="text-sm text-blue-600 hover:text-blue-800"
@@ -831,7 +903,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
           <div className="p-4 border-b">
             <h2 className="text-lg font-bold">Tools</h2>
           </div>
-          
+
           <div className="flex-1 overflow-y-auto p-4">
             <div className="space-y-2">
               {tools.map((tool) => (
@@ -839,14 +911,14 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                   key={tool.id}
                   onClick={() => {
                     setSelectedTool(tool.id);
-                    if (tool.id === 'image') {
+                    if (tool.id === "image") {
                       handleImageToolClick();
                     }
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     selectedTool === tool.id
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200'
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-100 hover:bg-gray-200"
                   }`}
                 >
                   <tool.icon size={20} />
@@ -855,6 +927,45 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
               ))}
             </div>
 
+            <button
+              onClick={() => {
+                const name = prompt("Save template name:");
+                if (name) {
+                  localStorage.setItem(
+                    name,
+                    JSON.stringify({ elements, eventData })
+                  );
+                  alert("Saved!");
+                }
+              }}
+              className="px-3 py-2 me-3 my-2 bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              💾 Save
+            </button>
+
+            <button
+              onClick={() => {
+                const name = prompt("Load template name:");
+                if (name) {
+                  const data = localStorage.getItem(name);
+                  if (data) {
+                    const {
+                      elements: savedElements,
+                      eventData: savedEventData,
+                    } = JSON.parse(data);
+                    setElements(savedElements);
+                    setEventData(savedEventData);
+                    alert("Loaded!");
+                  } else {
+                    alert("Not found!");
+                  }
+                }
+              }}
+              className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              📂 Load
+            </button>
+
             <div className="mt-8">
               <h3 className="font-semibold mb-3">Event Data</h3>
               <div className="space-y-3">
@@ -862,27 +973,35 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                   type="text"
                   placeholder="Event Title"
                   value={eventData.title}
-                  onChange={(e) => setEventData({ ...eventData, title: e.target.value })}
+                  onChange={(e) =>
+                    setEventData({ ...eventData, title: e.target.value })
+                  }
                   className="w-full px-3 py-2 border rounded-lg text-sm"
                 />
                 <input
                   type="date"
                   value={eventData.date}
-                  onChange={(e) => setEventData({ ...eventData, date: e.target.value })}
+                  onChange={(e) =>
+                    setEventData({ ...eventData, date: e.target.value })
+                  }
                   className="w-full px-3 py-2 border rounded-lg text-sm"
                 />
                 <input
                   type="text"
                   placeholder="Time"
                   value={eventData.time}
-                  onChange={(e) => setEventData({ ...eventData, time: e.target.value })}
+                  onChange={(e) =>
+                    setEventData({ ...eventData, time: e.target.value })
+                  }
                   className="w-full px-3 py-2 border rounded-lg text-sm"
                 />
                 <input
                   type="text"
                   placeholder="Location"
                   value={eventData.location}
-                  onChange={(e) => setEventData({ ...eventData, location: e.target.value })}
+                  onChange={(e) =>
+                    setEventData({ ...eventData, location: e.target.value })
+                  }
                   className="w-full px-3 py-2 border rounded-lg text-sm"
                 />
               </div>
@@ -900,10 +1019,10 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                 />
                 <label htmlFor="isPublic" className="cursor-pointer flex-1">
                   <div className="font-bold text-lg text-gray-800">
-                    {isPublic ? '🌐 Public Event' : '🔒 Private Event'}
+                    {isPublic ? "🌐 Public Event" : "🔒 Private Event"}
                   </div>
                   <p className="text-sm text-gray-600 mt-1">
-                    {isPublic 
+                    {isPublic
                       ? "Anyone with the link or QR code can view this invitation"
                       : "Only you and people you directly share with can view it"}
                   </p>
@@ -919,7 +1038,9 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                 <input
                   type="text"
                   value={privatePin}
-                  onChange={(e) => setPrivatePin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  onChange={(e) =>
+                    setPrivatePin(e.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
                   placeholder="e.g., 1234"
                   className="w-full px-4 py-3 border border-red-300 rounded-lg focus:ring-red-500 focus:border-red-500"
                   maxLength={6}
@@ -957,7 +1078,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
           {/* Top Bar with Zoom Controls */}
           <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-white border-b">
             <h1 className="text-xl font-bold mb-2 sm:mb-0">Template Editor</h1>
-            
+
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <button
@@ -967,7 +1088,9 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                 >
                   <ZoomOut size={20} />
                 </button>
-                <span className="font-medium w-16 text-center">{Math.round(zoom * 100)}%</span>
+                <span className="font-medium w-16 text-center">
+                  {Math.round(zoom * 100)}%
+                </span>
                 <button
                   onClick={() => setZoom(Math.min(2, zoom + 0.25))}
                   className="p-2 hover:bg-gray-100 rounded-lg"
@@ -980,45 +1103,54 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
           </div>
 
           {/* Canvas Container */}
-          <div className="flex-1 overflow-auto bg-gray-100 p-2 sm:p-4" ref={containerRef}>
+          <div
+            className="flex-1 overflow-auto bg-gray-100 p-2 sm:p-4"
+            ref={containerRef}
+          >
             <div
               style={{
                 transform: `scale(${zoom})`,
-                transformOrigin: 'top center',
-                width: 'fit-content',
-                height: 'fit-content',
-                margin: '0 auto',
-                transition: 'transform 0.2s ease',
+                transformOrigin: "top center",
+                width: "fit-content",
+                height: "fit-content",
+                margin: "0 auto",
+                transition: "transform 0.2s ease",
               }}
             >
               <div
                 ref={canvasRef}
                 onClick={handleCanvasClick}
                 className="relative bg-white shadow-2xl"
-                style={{ 
-                  width: `${canvasDimensions.width}px`, 
+                style={{
+                  width: `${canvasDimensions.width}px`,
                   height: `${canvasDimensions.height}px`,
-                  minWidth: '300px',
-                  minHeight: '375px',
-                  cursor: isDragging || isResizing ? 'grabbing' : 'default'
+                  minWidth: "300px",
+                  minHeight: "375px",
+                  cursor: isDragging || isResizing ? "grabbing" : "default",
                 }}
               >
                 {elements.map((el) => (
                   <div
                     key={el.id}
-                    className={`absolute ${selectedElement === el.id ? 'ring-2 ring-blue-500' : ''} ${el.locked ? 'cursor-not-allowed' : ''}`}
+                    className={`absolute ${
+                      selectedElement === el.id ? "ring-2 ring-blue-500" : ""
+                    } ${el.locked ? "cursor-not-allowed" : ""}`}
                     style={{
                       left: `${el.x}px`,
                       top: `${el.y}px`,
                       width: `${el.width}px`,
                       height: `${el.height}px`,
-                      cursor: el.locked ? 'not-allowed' : (isDragging || isResizing ? 'grabbing' : 'grab')
+                      cursor: el.locked
+                        ? "not-allowed"
+                        : isDragging || isResizing
+                        ? "grabbing"
+                        : "grab",
                     }}
                     onMouseDown={(e) => startDrag(e, el.id)}
                   >
                     {/* Drag Handle */}
                     {!el.locked && (
-                      <div 
+                      <div
                         className="absolute -top-2 -left-2 bg-blue-500 text-white p-1 rounded-full cursor-move hover:bg-blue-600 z-10"
                         onMouseDown={(e) => {
                           startDrag(e, el.id);
@@ -1036,46 +1168,50 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                         {/* SE corner */}
                         <div
                           className="absolute bottom-0 right-0 w-4 h-4 bg-blue-500 cursor-se-resize rounded-sm"
-                          onMouseDown={(e) => startResize(e, el.id, 'se')}
+                          onMouseDown={(e) => startResize(e, el.id, "se")}
                         />
                         {/* SW corner */}
                         <div
                           className="absolute bottom-0 left-0 w-4 h-4 bg-blue-500 cursor-sw-resize rounded-sm"
-                          onMouseDown={(e) => startResize(e, el.id, 'sw')}
+                          onMouseDown={(e) => startResize(e, el.id, "sw")}
                         />
                         {/* NE corner */}
                         <div
                           className="absolute top-0 right-0 w-4 h-4 bg-blue-500 cursor-ne-resize rounded-sm"
-                          onMouseDown={(e) => startResize(e, el.id, 'ne')}
+                          onMouseDown={(e) => startResize(e, el.id, "ne")}
                         />
                         {/* NW corner */}
                         <div
                           className="absolute top-0 left-0 w-4 h-4 bg-blue-500 cursor-nw-resize rounded-sm"
-                          onMouseDown={(e) => startResize(e, el.id, 'nw')}
+                          onMouseDown={(e) => startResize(e, el.id, "nw")}
                         />
                       </>
                     )}
 
-                    {el.type === 'text' && (
+                    {el.type === "text" && (
                       <div
                         contentEditable={!el.locked}
                         suppressContentEditableWarning={true}
-                        onBlur={(e) => updateElement(el.id, { content: e.currentTarget.textContent || '' })}
+                        onBlur={(e) =>
+                          updateElement(el.id, {
+                            content: e.currentTarget.textContent || "",
+                          })
+                        }
                         style={{
-                          fontSize: `${(el.fontSize || 16)}px`,
+                          fontSize: `${el.fontSize || 16}px`,
                           color: el.color,
                           backgroundColor: el.bgColor,
-                          width: '100%',
-                          height: '100%',
-                          outline: 'none',
-                          padding: '8px',
-                          boxSizing: 'border-box',
-                          pointerEvents: el.locked ? 'none' : 'auto'
+                          width: "100%",
+                          height: "100%",
+                          outline: "none",
+                          padding: "8px",
+                          boxSizing: "border-box",
+                          pointerEvents: el.locked ? "none" : "auto",
                         }}
                         onClick={(e) => {
                           if (!el.locked) {
                             setSelectedElement(el.id);
-                            setActiveTab('properties');
+                            setActiveTab("properties");
                           }
                           e.stopPropagation();
                         }}
@@ -1083,71 +1219,75 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                         {el.content}
                       </div>
                     )}
-                    {el.type === 'rectangle' && (
-                      <div 
-                        style={{ 
-                          width: '100%', 
-                          height: '100%', 
-                          backgroundColor: el.bgColor, 
-                          border: `2px solid ${el.color}` 
+                    {el.type === "rectangle" && (
+                      <div
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          backgroundColor: el.bgColor,
+                          border: `2px solid ${el.color}`,
                         }}
                         onClick={(e) => {
                           if (!el.locked) {
                             setSelectedElement(el.id);
-                            setActiveTab('properties');
+                            setActiveTab("properties");
                           }
                           e.stopPropagation();
                         }}
                       />
                     )}
-                    {el.type === 'circle' && (
-                      <div 
-                        style={{ 
-                          width: '100%', 
-                          height: '100%', 
-                          backgroundColor: el.bgColor, 
-                          border: `2px solid ${el.color}`, 
-                          borderRadius: '50%' 
+                    {el.type === "circle" && (
+                      <div
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          backgroundColor: el.bgColor,
+                          border: `2px solid ${el.color}`,
+                          borderRadius: "50%",
                         }}
                         onClick={(e) => {
                           if (!el.locked) {
                             setSelectedElement(el.id);
-                            setActiveTab('properties');
+                            setActiveTab("properties");
                           }
                           e.stopPropagation();
                         }}
                       />
                     )}
-                    {el.type === 'image' && el.imageUrl && (
-                      <img 
-                        src={el.imageUrl} 
-                        alt="User uploaded" 
-                        style={{ 
-                          width: '100%', 
-                          height: '100%', 
-                          objectFit: 'cover',
-                          pointerEvents: el.locked ? 'none' : 'auto'
-                        }} 
+                    {el.type === "image" && el.imageUrl && (
+                      <img
+                        src={el.imageUrl}
+                        alt="User uploaded"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          pointerEvents: el.locked ? "none" : "auto",
+                        }}
                         onError={(e) => {
-                          e.currentTarget.src = 'https://via.placeholder.com/200x200?text=Image+Error';
-                          updateElement(el.id, { imageUrl: 'https://via.placeholder.com/200x200?text=Image+Error' });
+                          e.currentTarget.src =
+                            "https://via.placeholder.com/200x200?text=Image+Error";
+                          updateElement(el.id, {
+                            imageUrl:
+                              "https://via.placeholder.com/200x200?text=Image+Error",
+                          });
                         }}
                         onClick={(e) => {
                           if (!el.locked) {
                             setSelectedElement(el.id);
-                            setActiveTab('properties');
+                            setActiveTab("properties");
                           }
                           e.stopPropagation();
                         }}
                       />
                     )}
-                    {el.type === 'image' && !el.imageUrl && (
-                      <div 
+                    {el.type === "image" && !el.imageUrl && (
+                      <div
                         className="w-full h-full flex flex-col items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 text-gray-500"
                         onClick={(e) => {
                           if (!el.locked) {
                             setSelectedElement(el.id);
-                            setActiveTab('properties');
+                            setActiveTab("properties");
                           }
                           e.stopPropagation();
                         }}
@@ -1168,19 +1308,28 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
           <div className="hidden lg:block w-64 bg-white border-l border-gray-200 p-4 overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold">Properties</h2>
-              <button onClick={deleteElement} className="p-2 text-red-500 hover:bg-red-50 rounded">
+              <button
+                onClick={deleteElement}
+                className="p-2 text-red-500 hover:bg-red-50 rounded"
+              >
                 <Trash2 size={18} />
               </button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Position</label>
+                <label className="block text-sm font-medium mb-1">
+                  Position
+                </label>
                 <div className="grid grid-cols-2 gap-2">
                   <input
                     type="number"
                     value={Math.round(selectedEl.x)}
-                    onChange={(e) => updateElement(selectedEl.id, { x: Number(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      updateElement(selectedEl.id, {
+                        x: Number(e.target.value) || 0,
+                      })
+                    }
                     disabled={selectedEl.locked}
                     className="px-2 py-1 border rounded text-sm"
                     placeholder="X"
@@ -1188,7 +1337,11 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                   <input
                     type="number"
                     value={Math.round(selectedEl.y)}
-                    onChange={(e) => updateElement(selectedEl.id, { y: Number(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      updateElement(selectedEl.id, {
+                        y: Number(e.target.value) || 0,
+                      })
+                    }
                     disabled={selectedEl.locked}
                     className="px-2 py-1 border rounded text-sm"
                     placeholder="Y"
@@ -1202,7 +1355,11 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                   <input
                     type="number"
                     value={Math.round(selectedEl.width)}
-                    onChange={(e) => updateElement(selectedEl.id, { width: Number(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      updateElement(selectedEl.id, {
+                        width: Number(e.target.value) || 0,
+                      })
+                    }
                     disabled={selectedEl.locked}
                     className="px-2 py-1 border rounded text-sm"
                     placeholder="W"
@@ -1210,7 +1367,11 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                   <input
                     type="number"
                     value={Math.round(selectedEl.height)}
-                    onChange={(e) => updateElement(selectedEl.id, { height: Number(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      updateElement(selectedEl.id, {
+                        height: Number(e.target.value) || 0,
+                      })
+                    }
                     disabled={selectedEl.locked}
                     className="px-2 py-1 border rounded text-sm"
                     placeholder="H"
@@ -1218,13 +1379,19 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                 </div>
               </div>
 
-              {selectedEl.type === 'text' && (
+              {selectedEl.type === "text" && (
                 <div>
-                  <label className="block text-sm font-medium mb-1">Font Size</label>
+                  <label className="block text-sm font-medium mb-1">
+                    Font Size
+                  </label>
                   <input
                     type="number"
                     value={selectedEl.fontSize}
-                    onChange={(e) => updateElement(selectedEl.id, { fontSize: Number(e.target.value) || 16 })}
+                    onChange={(e) =>
+                      updateElement(selectedEl.id, {
+                        fontSize: Number(e.target.value) || 16,
+                      })
+                    }
                     disabled={selectedEl.locked}
                     className="w-full px-2 py-1 border rounded text-sm"
                   />
@@ -1235,61 +1402,74 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                 <label className="block text-sm font-medium mb-1">Color</label>
                 <input
                   type="color"
-                  value={selectedEl.color || '#000000'}
-                  onChange={(e) => updateElement(selectedEl.id, { color: e.target.value })}
+                  value={selectedEl.color || "#000000"}
+                  onChange={(e) =>
+                    updateElement(selectedEl.id, { color: e.target.value })
+                  }
                   disabled={selectedEl.locked}
                   className="w-full h-10 rounded cursor-pointer"
                 />
               </div>
 
-              {selectedEl.type !== 'text' && selectedEl.type !== 'image' && (
+              {selectedEl.type !== "text" && selectedEl.type !== "image" && (
                 <div>
-                  <label className="block text-sm font-medium mb-1">Background</label>
+                  <label className="block text-sm font-medium mb-1">
+                    Background
+                  </label>
                   <input
                     type="color"
-                    value={selectedEl.bgColor || '#ffffff'}
-                    onChange={(e) => updateElement(selectedEl.id, { bgColor: e.target.value })}
+                    value={selectedEl.bgColor || "#ffffff"}
+                    onChange={(e) =>
+                      updateElement(selectedEl.id, { bgColor: e.target.value })
+                    }
                     disabled={selectedEl.locked}
                     className="w-full h-10 rounded cursor-pointer"
                   />
                 </div>
               )}
 
-              {selectedEl.type === 'image' && (
+              {selectedEl.type === "image" && (
                 <div>
-                  <label className="block text-sm font-medium mb-1">Image</label>
+                  <label className="block text-sm font-medium mb-1">
+                    Image
+                  </label>
                   <div className="space-y-3">
                     {selectedEl.imageUrl && (
                       <div className="mb-2">
-                        <p className="text-xs text-gray-500 mb-1">Current Image:</p>
-                        <img 
-                          src={selectedEl.imageUrl} 
-                          alt="Preview" 
+                        <p className="text-xs text-gray-500 mb-1">
+                          Current Image:
+                        </p>
+                        <img
+                          src={selectedEl.imageUrl}
+                          alt="Preview"
                           className="w-full h-32 object-cover rounded-lg border"
                           onError={(e) => {
-                            e.currentTarget.src = 'https://via.placeholder.com/200x200?text=Image+Error';
+                            e.currentTarget.src =
+                              "https://via.placeholder.com/200x200?text=Image+Error";
                           }}
                         />
                       </div>
                     )}
-                    
+
                     <button
                       onClick={() => setShowImageUploadModal(true)}
                       className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm"
                     >
                       <Upload size={16} />
-                      {selectedEl.imageUrl ? 'Change Image' : 'Add Image'}
+                      {selectedEl.imageUrl ? "Change Image" : "Add Image"}
                     </button>
                   </div>
                 </div>
               )}
 
               <button
-                onClick={() => updateElement(selectedEl.id, { locked: !selectedEl.locked })}
+                onClick={() =>
+                  updateElement(selectedEl.id, { locked: !selectedEl.locked })
+                }
                 className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
               >
                 {selectedEl.locked ? <Unlock size={18} /> : <Lock size={18} />}
-                {selectedEl.locked ? 'Unlock' : 'Lock'}
+                {selectedEl.locked ? "Unlock" : "Lock"}
               </button>
 
               {/* Drag Instructions */}
@@ -1314,14 +1494,22 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
         {/* Tabs Navigation */}
         <div className="flex border-b border-gray-200">
           <button
-            onClick={() => setActiveTab('tools')}
-            className={`flex-1 py-3 text-sm font-medium ${activeTab === 'tools' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+            onClick={() => setActiveTab("tools")}
+            className={`flex-1 py-3 text-sm font-medium ${
+              activeTab === "tools"
+                ? "text-blue-600 border-b-2 border-blue-600"
+                : "text-gray-500"
+            }`}
           >
             Tools & Data
           </button>
           <button
-            onClick={() => setActiveTab('properties')}
-            className={`flex-1 py-3 text-sm font-medium ${activeTab === 'properties' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+            onClick={() => setActiveTab("properties")}
+            className={`flex-1 py-3 text-sm font-medium ${
+              activeTab === "properties"
+                ? "text-blue-600 border-b-2 border-blue-600"
+                : "text-gray-500"
+            }`}
             disabled={!selectedEl}
           >
             Properties {selectedEl && `(${selectedEl.type})`}
@@ -1330,7 +1518,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
 
         {/* Tabs Content */}
         <div className="p-4 max-h-60 overflow-y-auto">
-          {activeTab === 'tools' ? (
+          {activeTab === "tools" ? (
             <div>
               {/* Tools Section */}
               <div className="mb-6">
@@ -1340,7 +1528,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                     <button
                       key={tool.id}
                       onClick={() => {
-                        if (tool.id === 'image') {
+                        if (tool.id === "image") {
                           handleImageToolClick();
                         } else {
                           addElement(tool.id);
@@ -1348,8 +1536,8 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                       }}
                       className={`flex flex-col items-center justify-center p-3 rounded-lg transition-colors ${
                         selectedTool === tool.id
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-100 hover:bg-gray-200'
+                          ? "bg-blue-500 text-white"
+                          : "bg-gray-100 hover:bg-gray-200"
                       }`}
                     >
                       <tool.icon size={24} />
@@ -1359,6 +1547,45 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                 </div>
               </div>
 
+              <button
+                onClick={() => {
+                  const name = prompt("Save template name:");
+                  if (name) {
+                    localStorage.setItem(
+                      name,
+                      JSON.stringify({ elements, eventData })
+                    );
+                    alert("Saved!");
+                  }
+                }}
+                className="px-3 py-2 me-3 my-2 bg-green-500 text-white rounded hover:bg-green-600"
+              >
+                💾 Save
+              </button>
+
+              <button
+                onClick={() => {
+                  const name = prompt("Load template name:");
+                  if (name) {
+                    const data = localStorage.getItem(name);
+                    if (data) {
+                      const {
+                        elements: savedElements,
+                        eventData: savedEventData,
+                      } = JSON.parse(data);
+                      setElements(savedElements);
+                      setEventData(savedEventData);
+                      alert("Loaded!");
+                    } else {
+                      alert("Not found!");
+                    }
+                  }
+                }}
+                className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                📂 Load
+              </button>
+
               {/* Event Data Section */}
               <div className="mb-6">
                 <h3 className="font-semibold mb-3">Event Data</h3>
@@ -1367,27 +1594,35 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                     type="text"
                     placeholder="Event Title"
                     value={eventData.title}
-                    onChange={(e) => setEventData({ ...eventData, title: e.target.value })}
+                    onChange={(e) =>
+                      setEventData({ ...eventData, title: e.target.value })
+                    }
                     className="w-full px-3 py-2 border rounded-lg text-sm"
                   />
                   <input
                     type="date"
                     value={eventData.date}
-                    onChange={(e) => setEventData({ ...eventData, date: e.target.value })}
+                    onChange={(e) =>
+                      setEventData({ ...eventData, date: e.target.value })
+                    }
                     className="w-full px-3 py-2 border rounded-lg text-sm"
                   />
                   <input
                     type="text"
                     placeholder="Time"
                     value={eventData.time}
-                    onChange={(e) => setEventData({ ...eventData, time: e.target.value })}
+                    onChange={(e) =>
+                      setEventData({ ...eventData, time: e.target.value })
+                    }
                     className="w-full px-3 py-2 border rounded-lg text-sm"
                   />
                   <input
                     type="text"
                     placeholder="Location Link"
                     value={eventData.location}
-                    onChange={(e) => setEventData({ ...eventData, location: e.target.value })}
+                    onChange={(e) =>
+                      setEventData({ ...eventData, location: e.target.value })
+                    }
                     className="w-full px-3 py-2 border rounded-lg text-sm"
                   />
                 </div>
@@ -1404,10 +1639,12 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                   />
                   <div>
                     <div className="font-semibold text-gray-800">
-                      {isPublic ? 'Public Event' : 'Private Event'}
+                      {isPublic ? "Public Event" : "Private Event"}
                     </div>
                     <p className="text-xs text-gray-600 mt-1">
-                      {isPublic ? 'Visible to anyone with link' : 'Only visible to you'}
+                      {isPublic
+                        ? "Visible to anyone with link"
+                        : "Only visible to you"}
                     </p>
                   </div>
                 </label>
@@ -1441,21 +1678,30 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                 <>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-semibold">Element Properties</h3>
-                    <button onClick={deleteElement} className="p-2 text-red-500 hover:bg-red-50 rounded">
+                    <button
+                      onClick={deleteElement}
+                      className="p-2 text-red-500 hover:bg-red-50 rounded"
+                    >
                       <Trash2 size={18} />
                     </button>
                   </div>
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-xs font-medium mb-1">Position</label>
+                      <label className="block text-xs font-medium mb-1">
+                        Position
+                      </label>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
                           <div className="text-xs text-gray-500 mb-1">X</div>
                           <input
                             type="number"
                             value={Math.round(selectedEl.x)}
-                            onChange={(e) => updateElement(selectedEl.id, { x: Number(e.target.value) || 0 })}
+                            onChange={(e) =>
+                              updateElement(selectedEl.id, {
+                                x: Number(e.target.value) || 0,
+                              })
+                            }
                             disabled={selectedEl.locked}
                             className="w-full px-2 py-1 border rounded text-sm"
                           />
@@ -1465,7 +1711,11 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                           <input
                             type="number"
                             value={Math.round(selectedEl.y)}
-                            onChange={(e) => updateElement(selectedEl.id, { y: Number(e.target.value) || 0 })}
+                            onChange={(e) =>
+                              updateElement(selectedEl.id, {
+                                y: Number(e.target.value) || 0,
+                              })
+                            }
                             disabled={selectedEl.locked}
                             className="w-full px-2 py-1 border rounded text-sm"
                           />
@@ -1474,24 +1724,38 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium mb-1">Size</label>
+                      <label className="block text-xs font-medium mb-1">
+                        Size
+                      </label>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <div className="text-xs text-gray-500 mb-1">Width</div>
+                          <div className="text-xs text-gray-500 mb-1">
+                            Width
+                          </div>
                           <input
                             type="number"
                             value={Math.round(selectedEl.width)}
-                            onChange={(e) => updateElement(selectedEl.id, { width: Number(e.target.value) || 0 })}
+                            onChange={(e) =>
+                              updateElement(selectedEl.id, {
+                                width: Number(e.target.value) || 0,
+                              })
+                            }
                             disabled={selectedEl.locked}
                             className="w-full px-2 py-1 border rounded text-sm"
                           />
                         </div>
                         <div>
-                          <div className="text-xs text-gray-500 mb-1">Height</div>
+                          <div className="text-xs text-gray-500 mb-1">
+                            Height
+                          </div>
                           <input
                             type="number"
                             value={Math.round(selectedEl.height)}
-                            onChange={(e) => updateElement(selectedEl.id, { height: Number(e.target.value) || 0 })}
+                            onChange={(e) =>
+                              updateElement(selectedEl.id, {
+                                height: Number(e.target.value) || 0,
+                              })
+                            }
                             disabled={selectedEl.locked}
                             className="w-full px-2 py-1 border rounded text-sm"
                           />
@@ -1499,13 +1763,19 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                       </div>
                     </div>
 
-                    {selectedEl.type === 'text' && (
+                    {selectedEl.type === "text" && (
                       <div>
-                        <label className="block text-xs font-medium mb-1">Font Size</label>
+                        <label className="block text-xs font-medium mb-1">
+                          Font Size
+                        </label>
                         <input
                           type="number"
                           value={selectedEl.fontSize}
-                          onChange={(e) => updateElement(selectedEl.id, { fontSize: Number(e.target.value) || 16 })}
+                          onChange={(e) =>
+                            updateElement(selectedEl.id, {
+                              fontSize: Number(e.target.value) || 16,
+                            })
+                          }
                           disabled={selectedEl.locked}
                           className="w-full px-2 py-1 border rounded text-sm"
                         />
@@ -1513,62 +1783,94 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                     )}
 
                     <div>
-                      <label className="block text-xs font-medium mb-1">Color</label>
+                      <label className="block text-xs font-medium mb-1">
+                        Color
+                      </label>
                       <div className="flex items-center gap-2">
                         <input
                           type="color"
-                          value={selectedEl.color || '#000000'}
-                          onChange={(e) => updateElement(selectedEl.id, { color: e.target.value })}
+                          value={selectedEl.color || "#000000"}
+                          onChange={(e) =>
+                            updateElement(selectedEl.id, {
+                              color: e.target.value,
+                            })
+                          }
                           disabled={selectedEl.locked}
                           className="w-10 h-10 rounded cursor-pointer"
                         />
-                        <span className="text-xs text-gray-600">{selectedEl.color || '#000000'}</span>
+                        <span className="text-xs text-gray-600">
+                          {selectedEl.color || "#000000"}
+                        </span>
                       </div>
                     </div>
 
-                    {selectedEl.type !== 'text' && selectedEl.type !== 'image' && (
-                      <div>
-                        <label className="block text-xs font-medium mb-1">Background</label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="color"
-                            value={selectedEl.bgColor || '#ffffff'}
-                            onChange={(e) => updateElement(selectedEl.id, { bgColor: e.target.value })}
-                            disabled={selectedEl.locked}
-                            className="w-10 h-10 rounded cursor-pointer"
-                          />
-                          <span className="text-xs text-gray-600">{selectedEl.bgColor || '#ffffff'}</span>
+                    {selectedEl.type !== "text" &&
+                      selectedEl.type !== "image" && (
+                        <div>
+                          <label className="block text-xs font-medium mb-1">
+                            Background
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="color"
+                              value={selectedEl.bgColor || "#ffffff"}
+                              onChange={(e) =>
+                                updateElement(selectedEl.id, {
+                                  bgColor: e.target.value,
+                                })
+                              }
+                              disabled={selectedEl.locked}
+                              className="w-10 h-10 rounded cursor-pointer"
+                            />
+                            <span className="text-xs text-gray-600">
+                              {selectedEl.bgColor || "#ffffff"}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {selectedEl.type === 'image' && (
+                    {selectedEl.type === "image" && (
                       <div>
-                        <label className="block text-xs font-medium mb-1">Image</label>
+                        <label className="block text-xs font-medium mb-1">
+                          Image
+                        </label>
                         <button
                           onClick={() => setShowImageUploadModal(true)}
                           className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm"
                         >
                           <Upload size={16} />
-                          {selectedEl.imageUrl ? 'Change Image' : 'Add Image'}
+                          {selectedEl.imageUrl ? "Change Image" : "Add Image"}
                         </button>
                       </div>
                     )}
 
                     <button
-                      onClick={() => updateElement(selectedEl.id, { locked: !selectedEl.locked })}
+                      onClick={() =>
+                        updateElement(selectedEl.id, {
+                          locked: !selectedEl.locked,
+                        })
+                      }
                       className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm"
                     >
-                      {selectedEl.locked ? <Unlock size={16} /> : <Lock size={16} />}
-                      {selectedEl.locked ? 'Unlock Element' : 'Lock Element'}
+                      {selectedEl.locked ? (
+                        <Unlock size={16} />
+                      ) : (
+                        <Lock size={16} />
+                      )}
+                      {selectedEl.locked ? "Unlock Element" : "Lock Element"}
                     </button>
 
                     {/* Mobile Drag Instructions */}
                     <div className="pt-4 border-t border-gray-200">
-                      <p className="text-xs text-gray-500 mb-2">Drag Controls:</p>
+                      <p className="text-xs text-gray-500 mb-2">
+                        Drag Controls:
+                      </p>
                       <div className="text-xs text-gray-600 space-y-1">
                         <div className="flex items-center gap-2">
-                          <GripVertical size={12} className="text-blue-500 shrink-0" />
+                          <GripVertical
+                            size={12}
+                            className="text-blue-500 shrink-0"
+                          />
                           <span>Use drag handle to move</span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -1606,8 +1908,15 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
 
             <div className="flex flex-col md:flex-row items-center justify-center gap-6 sm:gap-10">
               <div className="bg-gray-50 p-6 sm:p-8 rounded-2xl">
-                <QRCode value={shareUrl} size={180} level="H" className="sm:w-56" />
-                <p className="text-center text-xs sm:text-sm text-gray-600 mt-4">Scan to view</p>
+                <QRCode
+                  value={shareUrl}
+                  size={180}
+                  level="H"
+                  className="sm:w-56"
+                />
+                <p className="text-center text-xs sm:text-sm text-gray-600 mt-4">
+                  Scan to view
+                </p>
               </div>
 
               <div className="text-center md:text-left">
@@ -1620,7 +1929,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(shareUrl);
-                      alert('Link copied!');
+                      alert("Link copied!");
                     }}
                     className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm sm:text-base"
                   >

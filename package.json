@@ -9,7 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ai-sdk/groq": "^3.0.4",
+    "@ai-sdk/react": "^3.0.29",
+    "@emailjs/browser": "^4.4.1",
+    "ai": "^6.0.27",
     "bootstrap": "^5.3.8",
+    "emailjs": "^5.0.0",
     "firebase": "^12.7.0",
     "firebase-admin": "^13.6.0",
     "firebase-functions": "^7.0.2",
@@ -17,10 +22,12 @@
     "flowbite-react": "^0.12.10",
     "lucide-react": "^0.556.0",
     "next": "16.0.10",
+    "nodemailer": "^7.0.12",
     "qrcode": "^1.5.4",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "react-qr-code": "^2.0.18"
+    "react-qr-code": "^2.0.18",
+    "resend": "^6.7.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
