@@ -76,7 +76,7 @@ export default function NavbarLanding() {
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-8">
+            <div className="hidden lg:flex items-center gap-8 ml-3">
               {navLinks.map((link) => (
                 <button
                   key={link.name}
@@ -100,7 +100,7 @@ export default function NavbarLanding() {
             </div>
 
             {/* Desktop Auth Buttons */}
-            <div className="hidden lg:flex items-center gap-4">
+            <div className="hidden lg:flex items-center gap-4 ml-3">
               {loading ? (
                 <div className="w-24 h-10 bg-gray-200 rounded-lg animate-pulse" />
               ) : user ? (
@@ -127,9 +127,9 @@ export default function NavbarLanding() {
                     Logout
                   </button>
                   <Link href="/chat"
-                    className="px-6 py-2.5 bg-linear-to-r from-blue-500 to-teal-600 text-white rounded-lg font-medium hover:from-red-600 hover:to-pink-700 transition"
+                    className="px-6 py-2.5 bg-linear-to-r from-blue-500 to-teal-600 text-white rounded-lg font-medium hover:from-blue-600 hover:to-teal-700 transition text-center"
                   >
-                    AI
+                    AI Assistant
                   </Link>
                 </>
               ) : (
@@ -203,19 +203,21 @@ export default function NavbarLanding() {
 
                   <button
                     onClick={handleLogout}
-                    className="w-full px-6 py-3 bg-linear-to-r from-red-500 to-pink-600 text-white rounded-lg font-medium hover:from-red-600 hover:to-pink-700 transition"
+                    className="w-full mb-3! px-6 py-3 bg-linear-to-r from-red-500 to-pink-600 text-white rounded-lg font-medium hover:from-red-600 hover:to-pink-700 transition"
                   >
                     Logout
                   </button>
-                  <Link href="/chat"
-                    className="w-full px-6 py-3 bg-linear-to-r from-blue-500 to-teal-600 text-white rounded-lg font-medium hover:from-red-600 hover:to-pink-700 transition"
+                  <Link href="/chat" className="block">
+                  <button
+                    className="w-full px-6 py-3 bg-linear-to-r from-blue-500 to-teal-600 text-white rounded-lg font-medium hover:from-blue-600 hover:to-teal-700 transition"
                   >
-                    AI
+                    AI Assistant
+                  </button>
                   </Link>
                 </>
               ) : (
                 <Link href="/auth/signin" className="block">
-                  <button className="w-full px-6 py-3 bg-linear-to-r from-teal-600 to-cyan-600 text-white rounded-lg font-medium hover:from-teal-700 hover:to-cyan-700 transition">
+                  <button className="w-full px-6 py-3 bg-linear-to-r from-teal-600 to-cyan-600 text-white rounded-lg font-medium hover:from-teal-700 hover:to-cyan-700 transition mt-3!">
                     Sign In
                   </button>
                 </Link>
