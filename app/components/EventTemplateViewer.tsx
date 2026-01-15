@@ -93,13 +93,6 @@ const EventTemplateViewer: React.FC<EventTemplateViewerProps> = ({ elements, eve
       // Calculate scale relative to original 800x1000
       const scaleFactor = targetWidth / 800;
       setScale(scaleFactor);
-      
-      console.log('Canvas sizing:', {
-        container: { width: containerWidth, height: availableHeight },
-        canvas: { width: targetWidth, height: targetHeight },
-        scale: scaleFactor,
-        fitsHeight: targetHeight <= availableHeight
-      });
     };
 
     updateCanvasSize();
@@ -162,21 +155,25 @@ const EventTemplateViewer: React.FC<EventTemplateViewerProps> = ({ elements, eve
                 style={{
                   fontSize: `${(el.fontSize || 16) * scale}px`,
                   color: el.color,
-                  backgroundColor: el.bgColor,
+                  backgroundColor: el.bgColor || 'transparent',
                   width: '100%',
                   height: '100%',
-                  padding: `${Math.max(4, 8 * scale)}px`, // Minimum 4px padding
+                  padding: `${Math.max(4, 8 * scale)}px`,
                   boxSizing: 'border-box',
-                  overflow: 'hidden',
-                  wordBreak: 'break-word',
+                  // Match editor's text behavior
+                  whiteSpace: 'pre', // Preserve line breaks
+                  wordBreak: 'break-word', // Allow breaking long words
+                  overflowWrap: 'anywhere', // Break anywhere if needed
+                  overflow: 'visible',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'flex-start',
+                  flexWrap: 'wrap',
+                  alignContent: 'flex-start',
                 }}
               >
-                {el.content}
+                {(el.content || '').replace(/\n/g, ' ').replace(/\r/g, ' ')}
               </div>
-            )}
+)}
             {el.type === 'rectangle' && (
               <div
                 style={{
@@ -216,13 +213,6 @@ const EventTemplateViewer: React.FC<EventTemplateViewerProps> = ({ elements, eve
           </div>
         ))}
       </div>
-      
-      {/* Show warning if canvas is being cut */}
-      {containerHeight > 0 && canvasSize.height > containerHeight && (
-        <div className="absolute bottom-2 left-2 bg-yellow-500 text-white text-xs p-1 rounded">
-          Canvas may be cut off
-        </div>
-      )}
     </div>
   );
 };
