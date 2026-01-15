@@ -343,3 +343,31 @@ h1, h2, h3, h4, h5, h6 {
     display: none !important;
   }
 }
+
+/* Prevent canvas overflow */
+.canvas-container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden !important;
+  contain: content;
+}
+
+/* Force canvas to stay within bounds */
+canvas, .canvas-wrapper {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+}
+
+/* For very small mobile screens */
+@media (max-width: 360px) {
+  .canvas-container {
+    padding: 0 5px;
+    box-sizing: border-box;
+  }
+  
+  .canvas-wrapper {
+    transform: scale(0.95);
+    transform-origin: center;
+  }
+}

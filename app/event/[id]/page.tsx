@@ -8,7 +8,8 @@ import {
   Loader2, Calendar, Clock, MapPin, Type, 
   ImageIcon, Square, Circle, Trash2, 
   Edit2, Upload, X, AlertCircle, Download,
-  Share2, ZoomIn, ZoomOut, Grid, Maximize2
+  Share2, ZoomIn, ZoomOut, Grid, Maximize2,
+  Wrench
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { db, storage } from '@/lib/firebase';
@@ -40,6 +41,8 @@ const EditEventPage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needsFix, setNeedsFix] = useState(false);
+  const [invitationId, setInvitationId] = useState<string | null>(null);
   
   // Event data
   const [eventData, setEventData] = useState({
@@ -61,7 +64,7 @@ const EditEventPage = () => {
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [showGrid, setShowGrid] = useState(true);
-  const [canvasSize] = useState({ width: 800, height: 1000 }); // Fixed canvas size
+  const [canvasSize] = useState({ width: 800, height: 1000 });
   
   const canvasRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -86,49 +89,65 @@ const EditEventPage = () => {
       console.log('Loading event with ID:', eventId);
       console.log('Current user UID:', user?.uid);
       
-      const docSnap = await getDoc(doc(db, 'events', eventId));
+      // 1. First, get the event document from 'events' collection
+      const eventDoc = await getDoc(doc(db, 'events', eventId));
       
-      if (!docSnap.exists()) {
+      if (!eventDoc.exists()) {
         setError('Event not found');
         setLoading(false);
         return;
       }
       
-      const data = docSnap.data();
-      console.log('Event data from Firestore:', data);
-      console.log('Event createdBy:', data.createdBy);
-      console.log('User UID:', user?.uid);
+      const eventDataFromDb = eventDoc.data();
+      console.log('Event data from Firestore:', eventDataFromDb);
       
-      // Check ownership - Add admin check
-      if (data.createdBy !== user?.uid) {
-        // Check if user is admin
-        const userDoc = await getDoc(doc(db, 'users', user?.uid || ''));
-        const userData = userDoc.data();
-        const isAdmin = userData?.role === 'admin';
-        
-        if (!isAdmin) {
-          setError('You do not have permission to edit this event');
-          setLoading(false);
-          return;
-        }
-        console.log('Admin access granted');
+      // Check ownership
+      if (eventDataFromDb.createdBy !== user?.uid) {
+        setError('You do not have permission to edit this event');
+        setLoading(false);
+        return;
       }
       
-      // Set event data
+      // 2. Get the invitationId from the event document - CRITICAL!
+      const invitationId = eventDataFromDb.invitationId;
+      console.log('Found invitation ID:', invitationId);
+      
+      if (!invitationId) {
+        setError('No invitation design linked to this event');
+        setLoading(false);
+        return;
+      }
+      
+      // Store invitationId in state
+      setInvitationId(invitationId); // Add this line if you have this state
+      
+      // 3. Load the invitation document which contains the elements
+      const invitationDoc = await getDoc(doc(db, 'invitations', invitationId));
+      
+      if (!invitationDoc.exists()) {
+        setError('Invitation design not found');
+        setLoading(false);
+        return;
+      }
+      
+      const invitationData = invitationDoc.data();
+      console.log('Invitation data:', invitationData);
+      
+      // 4. Set event data
       setEventData({
-        title: data.title || '',
-        date: data.date || '',
-        time: data.time || '',
-        location: data.location || '',
-        description: data.description || ''
+        title: eventDataFromDb.title || '',
+        date: eventDataFromDb.date || '',
+        time: eventDataFromDb.time || '',
+        location: eventDataFromDb.location || '',
+        description: eventDataFromDb.description || ''
       });
       
-      // Set design elements
-      setElements(data.elements || []);
+      // 5. Set design elements
+      setElements(invitationData.elements || []);
       
-      // Set privacy settings
-      setIsPublic(data.isPublic || false);
-      setPrivatePin(data.privatePin || '');
+      // 6. Set privacy settings
+      setIsPublic(eventDataFromDb.isPublic || false);
+      setPrivatePin(eventDataFromDb.privatePin || '');
       
     } catch (err: any) {
       console.error('Error loading event:', err);
@@ -138,33 +157,169 @@ const EditEventPage = () => {
     }
   };
 
+  const fixMissingElements = async () => {
+    try {
+      console.log('Fixing missing elements for event:', eventId);
+      
+      const eventRef = doc(db, 'events', eventId);
+      
+      // Get current data
+      const docSnap = await getDoc(eventRef);
+      const data = docSnap.data();
+      
+      // Create initial elements based on event data
+      const initialElements: Element[] = [
+        {
+          id: Date.now(),
+          type: 'text',
+          x: 200,
+          y: 150,
+          width: 400,
+          height: 80,
+          content: data?.title || 'Event Title',
+          fontSize: 48,
+          color: '#1e40af',
+          bgColor: 'transparent',
+          locked: false,
+        },
+        {
+          id: Date.now() + 1,
+          type: 'text',
+          x: 200,
+          y: 250,
+          width: 400,
+          height: 40,
+          content: `📅 ${data?.date || 'Date'} | ⏰ ${data?.time || 'Time'}`,
+          fontSize: 24,
+          color: '#374151',
+          bgColor: 'transparent',
+          locked: false,
+        },
+        {
+          id: Date.now() + 2,
+          type: 'text',
+          x: 200,
+          y: 310,
+          width: 400,
+          height: 40,
+          content: `📍 ${data?.location || 'Location'}`,
+          fontSize: 24,
+          color: '#374151',
+          bgColor: 'transparent',
+          locked: false,
+        },
+        {
+          id: Date.now() + 3,
+          type: 'rectangle',
+          x: 180,
+          y: 130,
+          width: 440,
+          height: 240,
+          content: '',
+          fontSize: 16,
+          color: '#3b82f6',
+          bgColor: 'rgba(59, 130, 246, 0.1)',
+          locked: false,
+        },
+        {
+          id: Date.now() + 4,
+          type: 'text',
+          x: 200,
+          y: 400,
+          width: 400,
+          height: 60,
+          content: 'You\'re Invited!',
+          fontSize: 36,
+          color: '#7c3aed',
+          bgColor: 'transparent',
+          locked: false,
+        }
+      ];
+      
+      // Update the event with elements
+      await updateDoc(eventRef, {
+        elements: initialElements,
+        updatedAt: new Date().toISOString()
+      });
+      
+      console.log('Added initial elements:', initialElements);
+      
+      // Update local state
+      setElements(initialElements);
+      setNeedsFix(false);
+      
+      alert('✅ Event fixed! Initial design elements have been added.');
+      
+    } catch (err: any) {
+      console.error('Error fixing event:', err);
+      alert('❌ Failed to fix event: ' + err.message);
+    }
+  };
+
   const handleSave = async () => {
     if (!eventData.title.trim()) {
       alert('Event title is required');
       return;
     }
-    
+  
+    // Validate PIN for private events
+    if (!isPublic && !privatePin) {
+      alert('Please set a PIN for your private event');
+      return;
+    }
+  
+    // Validate PIN format (4-6 digits)
+    if (!isPublic && privatePin && !/^\d{4,6}$/.test(privatePin)) {
+      alert('Please enter a valid PIN (4-6 digits)');
+      return;
+    }
+  
     setSaving(true);
     try {
+      // 1. Get the event document to find invitationId
+      const eventDoc = await getDoc(doc(db, 'events', eventId));
+      const eventDataFromDb = eventDoc.data();
+      const invitationId = eventDataFromDb?.invitationId;
+      
+      if (!invitationId) {
+        alert('Error: No invitation design linked to this event');
+        return;
+      }
+      
+      // 2. Update the EVENT document (basic info + PIN)
       const eventRef = doc(db, 'events', eventId);
-      const updateData = {
+      await updateDoc(eventRef, {
         title: eventData.title.trim(),
         description: eventData.description?.trim() || '',
         date: eventData.date,
         time: eventData.time.trim(),
         location: eventData.location.trim(),
-        elements: elements,
         isPublic: isPublic,
-        privatePin: isPublic ? '' : privatePin,
-        updatedAt: new Date().toISOString()
-      };
+        privatePin: !isPublic ? privatePin : null, // Store PIN only if private
+        updatedAt: new Date().toISOString(),
+      });
       
-      await updateDoc(eventRef, updateData);
-      alert('Event updated successfully!');
+      // 3. Update the INVITATION document (design elements + PIN)
+      const invitationRef = doc(db, 'invitations', invitationId);
+      await updateDoc(invitationRef, {
+        elements: elements,
+        eventData: {
+          title: eventData.title.trim(),
+          description: eventData.description?.trim() || '',
+          date: eventData.date,
+          time: eventData.time.trim(),
+          location: eventData.location.trim(),
+        },
+        isPublic: isPublic,
+        privatePin: !isPublic ? privatePin : null, // Store PIN only if private
+        updatedAt: new Date().toISOString(),
+      });
+      
+      alert('✅ Event and design updated successfully!');
       
     } catch (err: any) {
       console.error('Error saving:', err);
-      alert('Failed to save event: ' + err.message);
+      alert('❌ Failed to save: ' + err.message);
     } finally {
       setSaving(false);
     }
@@ -176,22 +331,6 @@ const EditEventPage = () => {
     }
     
     try {
-      // Check user permissions before deleting
-      const docSnap = await getDoc(doc(db, 'events', eventId));
-      const data = docSnap.data();
-      
-      if (data?.createdBy !== user?.uid) {
-        // Check admin permission
-        const userDoc = await getDoc(doc(db, 'users', user?.uid || ''));
-        const userData = userDoc.data();
-        const isAdmin = userData?.role === 'admin';
-        
-        if (!isAdmin) {
-          alert('You do not have permission to delete this event');
-          return;
-        }
-      }
-      
       await deleteDoc(doc(db, 'events', eventId));
       alert('Event deleted successfully');
       router.push('/my-events');
@@ -274,15 +413,18 @@ const EditEventPage = () => {
     }
   };
 
+  // In your EditEventPage component
   const shareUrl = typeof window !== 'undefined' 
-    ? `${window.location.origin}/invite/${eventId}${!isPublic && privatePin ? `?pin=${privatePin}` : ''}`
-    : '';
+  ? `${window.location.origin}/invite/${invitationId}${!isPublic && privatePin ? `?pin=${privatePin}` : ''}`
+  : '';
 
   const copyLink = () => {
-    if (shareUrl) {
+    if (shareUrl && invitationId) {
       navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    } else {
+      alert('Cannot generate link yet. Please save the event first.');
     }
   };
 
@@ -326,21 +468,6 @@ const EditEventPage = () => {
                 <ArrowLeft size={18} />
                 My Events
               </button>
-              
-              {/* Debug button - only show in development */}
-              {process.env.NODE_ENV === 'development' && (
-                <button
-                  onClick={() => {
-                    console.log('Debug info:');
-                    console.log('Event ID:', eventId);
-                    console.log('User UID:', user?.uid);
-                    loadEventData();
-                  }}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
-                >
-                  Debug Info
-                </button>
-              )}
             </div>
           </div>
         </div>
@@ -368,7 +495,7 @@ const EditEventPage = () => {
       <div className="bg-white shadow-sm border-b px-4 py-3">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <button
-            onClick={() => router.push(`/event/${eventId}`)}
+            onClick={() => router.push(`/my-events`)}
             className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm"
           >
             <ArrowLeft size={18} />
@@ -376,9 +503,15 @@ const EditEventPage = () => {
           </button>
           
           <div className="flex items-center gap-3">
-            <span className="text-xs text-gray-500">
-              {user?.email} {user?.uid === elements.find(e => true)?.id ? '(Owner)' : '(Admin)'}
-            </span>
+            {needsFix && (
+              <button
+                onClick={fixMissingElements}
+                className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm"
+              >
+                <Wrench size={16} />
+                Fix Event Design
+              </button>
+            )}
             
             <button
               onClick={() => setShowPreview(true)}
@@ -409,6 +542,28 @@ const EditEventPage = () => {
       </div>
 
       <div className="max-w-7xl mx-auto p-3 sm:p-4">
+        {/* Notification Banner - Show when elements are missing */}
+        {needsFix && elements.length === 0 && (
+          <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="text-yellow-600" size={24} />
+              <div className="flex-1">
+                <h3 className="font-medium text-yellow-800">Design Setup Required</h3>
+                <p className="text-yellow-700 text-sm mt-1">
+                  This event doesn't have a design yet. Click "Fix Event Design" above to add initial design elements, or add elements manually using the tools.
+                </p>
+              </div>
+              <button
+                onClick={fixMissingElements}
+                className="flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 text-sm whitespace-nowrap"
+              >
+                <Wrench size={16} />
+                Auto Setup Design
+              </button>
+            </div>
+          </div>
+        )}
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Left Sidebar - Tools */}
           <div className="lg:col-span-1 space-y-4">
@@ -526,7 +681,7 @@ const EditEventPage = () => {
               </div>
             </div>
 
-            {/* Privacy Settings */}
+            {/* Privacy Settings Card */}
             <div className="bg-white rounded-xl shadow-sm p-4">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -550,6 +705,9 @@ const EditEventPage = () => {
               
               {!isPublic && (
                 <div>
+                  <label className="block text-sm text-gray-700 mb-2">
+                    Private Access PIN (4-6 digits)
+                  </label>
                   <div className="relative">
                     <input
                       type={showPin ? "text" : "password"}
@@ -574,7 +732,7 @@ const EditEventPage = () => {
             </div>
           </div>
 
-          {/* Main Canvas Area - Responsive version */}
+          {/* Main Canvas Area */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-xl shadow-sm p-4 h-full">
               {/* Canvas Header */}
@@ -590,13 +748,19 @@ const EditEventPage = () => {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setShowShareModal(true)}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:opacity-90 text-sm"
-                  >
-                    <Share2 size={16} />
-                    Share
-                  </button>
+                <button
+                  onClick={() => {
+                    if (!invitationId) {
+                      alert('Please save the event first to generate a shareable link');
+                      return;
+                    }
+                    setShowShareModal(true);
+                  }}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:opacity-90 text-sm"
+                >
+                  <Share2 size={16} />
+                  Share
+                </button>
                   
                   <button
                     onClick={handleDeleteEvent}
@@ -608,27 +772,26 @@ const EditEventPage = () => {
                 </div>
               </div>
 
-              {/* Canvas Container - Responsive wrapper */}
+              {/* Canvas Container - SIMPLE FIXED VERSION */}
               <div 
                 ref={canvasContainerRef}
-                className="relative bg-gray-50 rounded-lg border-2 border-gray-300 p-4 overflow-auto flex items-center justify-center"
+                className="relative bg-gray-50 rounded-lg border-2 border-gray-300 p-4"
                 style={{ 
                   maxHeight: '70vh',
-                  minHeight: '300px'
+                  minHeight: '300px',
+                  overflow: 'auto'
                 }}
               >
-                {/* Canvas - Scales with container */}
+                {/* Canvas */}
                 <div 
                   ref={canvasRef}
-                  className="relative bg-white"
+                  className="relative bg-white mx-auto"
                   style={{
                     width: `${canvasSize.width * zoom}px`,
                     height: `${canvasSize.height * zoom}px`,
                     minWidth: `${canvasSize.width * zoom}px`,
                     minHeight: `${canvasSize.height * zoom}px`,
-                    position: 'relative',
-                    maxWidth: '100%',
-                    maxHeight: '100%'
+                    position: 'relative'
                   }}
                 >
                   {/* Grid */}
@@ -707,15 +870,22 @@ const EditEventPage = () => {
                   ))}
                 </div>
 
-                {/* Empty State */}
+                {/* Empty State - Only show when truly empty */}
                 {elements.length === 0 && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <div className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-xl">
                       <Edit2 className="text-gray-300 mx-auto mb-4" size={48} />
                       <h4 className="text-lg font-medium text-gray-600 mb-2">Start Designing</h4>
-                      <p className="text-gray-500 text-sm">
+                      <p className="text-gray-500 text-sm mb-4">
                         Add elements from the toolbar to create your invitation
                       </p>
+                      <button
+                        onClick={fixMissingElements}
+                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 mx-auto"
+                      >
+                        <Wrench size={16} />
+                        Add Starter Template
+                      </button>
                     </div>
                   </div>
                 )}
@@ -896,7 +1066,7 @@ const EditEventPage = () => {
               </div>
               
               <div className="text-center">
-                <div className="bg-white border rounded-xl p-6 mb-4">
+                <div className="bg-white border rounded-xl p-6 mb-4 flex justify-center items-center">
                   <QRCode
                     value={shareUrl}
                     size={200}

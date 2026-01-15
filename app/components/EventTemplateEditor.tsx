@@ -18,6 +18,9 @@ import {
   AlertCircle,
   GripVertical,
   Move,
+  Save,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import QRCode from "react-qr-code";
 import {
@@ -26,7 +29,7 @@ import {
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytesResumable, getDownloadURL, uploadBytes } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -54,13 +57,36 @@ interface EventData {
 }
 
 interface EventTemplateEditorProps {
-  initialElements?: Element[];
+  initialElements?: any[];
   initialEventData?: Partial<EventData>;
+  // Admin mode props
+  isAdminMode?: boolean;
+  onAdminSave?: (elements: Element[], templateData: {
+    name: string;
+    description?: string;
+    category?: string;
+    previewImage?: string;
+  }) => Promise<void>;
+  onAdminCancel?: () => void;
+  adminTemplateName?: string;
+  adminTemplateDescription?: string;
+  adminTemplateCategory?: string;
+  adminCategories?: Array<{ id: string; name: string }>;
+  isLoading?: boolean;
 }
 
 const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
   initialElements = [],
   initialEventData = {},
+  // Admin mode props
+  isAdminMode = false,
+  onAdminSave,
+  onAdminCancel,
+  adminTemplateName = "",
+  adminTemplateDescription = "",
+  adminTemplateCategory = "",
+  adminCategories = [],
+  isLoading = false,
 }) => {
   const [elements, setElements] = useState<Element[]>(initialElements);
   const [eventData, setEventData] = useState<EventData>({
@@ -114,6 +140,14 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isPublic, setIsPublic] = useState(false);
   const [privatePin, setPrivatePin] = useState("");
+
+  // Admin mode state
+  const [templateName, setTemplateName] = useState(adminTemplateName);
+  const [templateDescription, setTemplateDescription] = useState(adminTemplateDescription);
+  const [templateCategory, setTemplateCategory] = useState(adminTemplateCategory);
+  const [templatePreviewImage, setTemplatePreviewImage] = useState<string | null>(null);
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const [showEventData, setShowEventData] = useState(false);
 
   const shareUrl = invitationId
     ? `${window.location.origin}/invite/${invitationId}`
@@ -464,49 +498,6 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
     setActiveTab("properties");
   };
 
-  // Update existing element's image
-  const updateElementImage = (imageUrl: string) => {
-    if (selectedElement !== null) {
-      updateElement(selectedElement, { imageUrl });
-      setShowImageUploadModal(false);
-      setTempImageUrl("");
-      setImagePreview(null);
-    }
-  };
-
-  // Open image upload modal
-  const handleImageToolClick = () => {
-    setShowImageUploadModal(true);
-    setImagePreview(null);
-    setImageUploadMethod("url");
-    setTempImageUrl("");
-    setUploadError(null);
-  };
-
-  // Preview URL image
-  const previewImageUrl = () => {
-    if (!tempImageUrl.trim()) {
-      alert("Please enter an image URL");
-      return;
-    }
-
-    try {
-      new URL(tempImageUrl);
-      setImagePreview(tempImageUrl);
-      setUploadError(null);
-    } catch (error) {
-      setUploadError("Please enter a valid URL");
-    }
-  };
-
-  // Cancel and close modal
-  const cancelUpload = () => {
-    setUploadingImage(false);
-    setUploadError(null);
-    setUploadProgress(0);
-    setShowImageUploadModal(false);
-  };
-
   // Calculate responsive canvas dimensions
   const calculateCanvasDimensions = () => {
     if (!containerRef.current) return { width: 800, height: 1000 };
@@ -558,7 +549,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
       content: type === "text" ? "Double click to edit" : "",
       fontSize: 16,
       color: "#000000",
-      bgColor: type === "text" ? "transparent" : "#e5e7eb",
+      bgColor: type === "text" ? "" : "#e5e7eb",
       locked: false,
       imageUrl: null,
     };
@@ -574,11 +565,15 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
       return;
     }
 
+    if (!privatePin) {
+        alert("Please set a PIN for your private invitation");
+        return;
+    }
+
     setSavingInvitation(true);
     try {
-      // 1. Save the invitation (existing code)
       const invitationData = {
-        eventId: "", // We'll update this
+        eventId: "",
         elements,
         eventData,
         createdBy: user.uid,
@@ -592,7 +587,6 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
         invitationData
       );
 
-      // 2. ALSO save a simple event record to the 'events' collection
       const simpleEventData = {
         title: eventData.title,
         description: eventData.description || "",
@@ -602,12 +596,11 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
         isPublic: isPublic,
         createdBy: user.uid,
         createdAt: serverTimestamp(),
-        invitationId: invitationRef.id, // Link to the invitation
+        invitationId: invitationRef.id,
       };
 
       const eventRef = await addDoc(collection(db, "events"), simpleEventData);
 
-      // 3. Update the invitation with event ID
       await updateDoc(invitationRef, {
         eventId: eventRef.id,
       });
@@ -663,7 +656,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
         content: selectedTool === "text" ? "Double click to edit" : "",
         fontSize: 16,
         color: "#000000",
-        bgColor: selectedTool === "text" ? "transparent" : "#e5e7eb",
+        bgColor: selectedTool === "text" ? "" : "#e5e7eb",
         locked: false,
         imageUrl: null,
       };
@@ -680,6 +673,87 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
   };
 
   const selectedEl = elements.find((el) => el.id === selectedElement);
+
+  // Admin save function
+const handleAdminSave = async () => {
+    if (!templateName.trim()) {
+      alert('Template name is required');
+      return;
+    }
+  
+    if (!onAdminSave) return;
+  
+    setSavingTemplate(true);
+    try {
+      let previewImageUrl = templatePreviewImage;
+  
+      // If previewImage is a base64 data URL (starts with data:), upload it to storage
+      if (templatePreviewImage && templatePreviewImage.startsWith('data:')) {
+        try {
+          const response = await fetch(templatePreviewImage);
+          const blob = await response.blob();
+          
+          // Upload to Firebase Storage
+          const timestamp = Date.now();
+          const filename = `template-previews/${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
+          const storageRef = ref(storage, filename);
+          
+          await uploadBytes(storageRef, blob);
+          previewImageUrl = await getDownloadURL(storageRef);
+        } catch (uploadError) {
+          console.error('Failed to upload preview image:', uploadError);
+          // Optionally: alert user and continue without image
+          alert('Preview image upload failed. Template will be saved without preview.');
+          //previewImageUrl = undefined;
+        }
+      }
+  
+      await onAdminSave(elements, {
+        name: templateName.trim(),
+        description: templateDescription.trim(),
+        category: templateCategory,
+        previewImage: previewImageUrl || undefined
+      });
+    } catch (error) {
+      console.error('Failed to save template:', error);
+      throw error;
+    } finally {
+      setSavingTemplate(false);
+    }
+  };
+
+  // Open image upload modal
+  const handleImageToolClick = () => {
+    setShowImageUploadModal(true);
+    setImagePreview(null);
+    setImageUploadMethod("url");
+    setTempImageUrl("");
+    setUploadError(null);
+  };
+
+  // Preview URL image
+  const previewImageUrl = () => {
+    if (!tempImageUrl.trim()) {
+      alert("Please enter an image URL");
+      return;
+    }
+
+    try {
+      new URL(tempImageUrl);
+      setImagePreview(tempImageUrl);
+      setUploadError(null);
+    } catch (error) {
+      setUploadError("Please enter a valid URL");
+    }
+  };
+
+  // Cancel and close modal
+  const cancelUpload = () => {
+    setUploadingImage(false);
+    setUploadError(null);
+    setUploadProgress(0);
+    setShowImageUploadModal(false);
+  };
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -898,186 +972,396 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-        {/* Left Sidebar - Desktop only */}
-        <div className="hidden lg:flex lg:flex-col w-64 bg-white border-r border-gray-200">
-          <div className="p-4 border-b">
-            <h2 className="text-lg font-bold">Tools</h2>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4">
-            <div className="space-y-2">
-              {tools.map((tool) => (
-                <button
-                  key={tool.id}
-                  onClick={() => {
-                    setSelectedTool(tool.id);
-                    if (tool.id === "image") {
-                      handleImageToolClick();
-                    }
-                  }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                    selectedTool === tool.id
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-100 hover:bg-gray-200"
-                  }`}
-                >
-                  <tool.icon size={20} />
-                  <span>{tool.label}</span>
-                </button>
-              ))}
-            </div>
-
-            <button
-              onClick={() => {
-                const name = prompt("Save template name:");
-                if (name) {
-                  localStorage.setItem(
-                    name,
-                    JSON.stringify({ elements, eventData })
-                  );
-                  alert("Saved!");
-                }
-              }}
-              className="px-3 py-2 me-3 my-2 bg-green-500 text-white rounded hover:bg-green-600"
-            >
-              💾 Save
-            </button>
-
-            <button
-              onClick={() => {
-                const name = prompt("Load template name:");
-                if (name) {
-                  const data = localStorage.getItem(name);
-                  if (data) {
-                    const {
-                      elements: savedElements,
-                      eventData: savedEventData,
-                    } = JSON.parse(data);
-                    setElements(savedElements);
-                    setEventData(savedEventData);
-                    alert("Loaded!");
-                  } else {
-                    alert("Not found!");
-                  }
-                }
-              }}
-              className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              📂 Load
-            </button>
-
-            <div className="mt-8">
-              <h3 className="font-semibold mb-3">Event Data</h3>
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  placeholder="Event Title"
-                  value={eventData.title}
-                  onChange={(e) =>
-                    setEventData({ ...eventData, title: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border rounded-lg text-sm"
-                />
-                <input
-                  type="date"
-                  value={eventData.date}
-                  onChange={(e) =>
-                    setEventData({ ...eventData, date: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border rounded-lg text-sm"
-                />
-                <input
-                  type="text"
-                  placeholder="Time"
-                  value={eventData.time}
-                  onChange={(e) =>
-                    setEventData({ ...eventData, time: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border rounded-lg text-sm"
-                />
-                <input
-                  type="text"
-                  placeholder="Location"
-                  value={eventData.location}
-                  onChange={(e) =>
-                    setEventData({ ...eventData, location: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border rounded-lg text-sm"
-                />
-              </div>
-            </div>
-
-            {/* Public/Private Toggle - Desktop */}
-            <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-200">
-              <div className="flex items-center gap-4">
-                <input
-                  type="checkbox"
-                  id="isPublic"
-                  checked={isPublic}
-                  onChange={(e) => setIsPublic(e.target.checked)}
-                  className="w-6 h-6 text-blue-600 rounded focus:ring-blue-500 cursor-pointer"
-                />
-                <label htmlFor="isPublic" className="cursor-pointer flex-1">
-                  <div className="font-bold text-lg text-gray-800">
-                    {isPublic ? "🌐 Public Event" : "🔒 Private Event"}
-                  </div>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {isPublic
-                      ? "Anyone with the link or QR code can view this invitation"
-                      : "Only you and people you directly share with can view it"}
-                  </p>
-                </label>
-              </div>
-            </div>
-
-            {!isPublic && (
-              <div className="mt-6 p-6 bg-red-50 rounded-2xl border border-red-200">
-                <label className="block font-semibold text-red-800 mb-2">
-                  Private Access PIN (4-6 digits)
-                </label>
-                <input
-                  type="text"
-                  value={privatePin}
-                  onChange={(e) =>
-                    setPrivatePin(e.target.value.replace(/\D/g, "").slice(0, 6))
-                  }
-                  placeholder="e.g., 1234"
-                  className="w-full px-4 py-3 border border-red-300 rounded-lg focus:ring-red-500 focus:border-red-500"
-                  maxLength={6}
-                />
-                <p className="text-sm text-red-700 mt-2">
-                  Guests must enter this PIN to view the invitation
-                </p>
-              </div>
-            )}
-
-            <div className="mt-8 space-y-3">
-              <button
-                onClick={saveAndGenerateLink}
-                disabled={savingInvitation}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-linear-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 disabled:opacity-70 transition text-sm"
+        {/* Left Sidebar - Different for admin mode */}
+        {isAdminMode ? (
+          <div className="hidden lg:flex lg:flex-col w-64 bg-white border-r border-gray-200 p-6 overflow-y-auto">
+            <div className="flex items-center gap-3 mb-6">
+              <button 
+                onClick={() => window.history.back()} 
+                className="p-2 hover:bg-gray-100 rounded-lg"
               >
-                {savingInvitation ? (
-                  <>
-                    <Loader2 className="animate-spin" size={18} />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Plus size={18} />
-                    Save & Share
-                  </>
-                )}
+                <X size={20} />
               </button>
+              <h2 className="text-lg font-bold">Template Details</h2>
+            </div>
+            
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">Template Name *</label>
+                <input
+                  type="text"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="E.g., Elegant Wedding"
+                  disabled={savingTemplate}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Description</label>
+                <textarea
+                  value={templateDescription}
+                  onChange={(e) => setTemplateDescription(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  rows={3}
+                  placeholder="Template description..."
+                  disabled={savingTemplate}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Category</label>
+                <select
+                  value={templateCategory}
+                  onChange={(e) => setTemplateCategory(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  disabled={savingTemplate}
+                >
+                  <option value="">Select category</option>
+                  {adminCategories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Preview Image</label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                  {templatePreviewImage ? (
+                    <>
+                      <img 
+                        src={templatePreviewImage} 
+                        alt="Preview" 
+                        className="w-full h-32 object-cover rounded mb-2"
+                      />
+                      <button
+                        onClick={() => setTemplatePreviewImage(null)}
+                        className="text-sm text-red-600 hover:text-red-800"
+                      >
+                        Remove
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="py-6">
+                        <Upload size={24} className="mx-auto mb-2 text-gray-400" />
+                        <p className="text-sm text-gray-500">Upload preview image</p>
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                              setTemplatePreviewImage(event.target?.result as string);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        className="hidden"
+                        id="preview-image-upload"
+                      />
+                      <label
+                        htmlFor="preview-image-upload"
+                        className="inline-block mt-2 px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm cursor-pointer"
+                      >
+                        Upload Image
+                      </label>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Event Data Section */}
+              <div className="border rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setShowEventData(!showEventData)}
+                  className="w-full px-4 py-3 bg-gray-50 flex items-center justify-between hover:bg-gray-100"
+                >
+                  <span className="font-medium">Sample Event Data</span>
+                  {showEventData ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                </button>
+                
+                {showEventData && (
+                  <div className="p-4 space-y-3!">
+                    <input
+                      type="text"
+                      placeholder="Event Title"
+                      value={eventData.title}
+                      onChange={(e) =>
+                        setEventData({ ...eventData, title: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border rounded-lg text-sm"
+                    />
+                    <input
+                      type="date"
+                      value={eventData.date}
+                      onChange={(e) =>
+                        setEventData({ ...eventData, date: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border rounded-lg text-sm"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Time"
+                      value={eventData.time}
+                      onChange={(e) =>
+                        setEventData({ ...eventData, time: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border rounded-lg text-sm"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Location"
+                      value={eventData.location}
+                      onChange={(e) =>
+                        setEventData({ ...eventData, location: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border rounded-lg text-sm"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Tools Section */}
+              <div>
+                <h3 className="font-medium mb-3">Add Elements</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {tools.map((tool) => (
+                    <button
+                      key={tool.id}
+                      onClick={() => addElement(tool.id)}
+                      className="flex flex-col items-center p-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                      disabled={savingTemplate}
+                    >
+                      <tool.icon size={20} />
+                      <span className="text-xs mt-1">{tool.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-auto pt-6 border-t">
+              <div className="flex gap-3">
+                <button
+                  onClick={onAdminCancel}
+                  disabled={savingTemplate}
+                  className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAdminSave}
+                  disabled={savingTemplate || !templateName.trim()}
+                  className="flex-1 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {savingTemplate ? (
+                    <>
+                      <Loader2 className="animate-spin" size={18} />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={18} />
+                      Save
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          // Original left sidebar for non-admin mode
+          <div className="hidden lg:flex lg:flex-col w-64 bg-white border-r border-gray-200">
+            <div className="p-4 border-b flex items-center gap-3">
+              <h2 className="text-lg font-bold hover:cursor-pointer bg-blue-300 w-10 h-10 text-center" onClick={()=>location.reload()}> { "<" } </h2>
+              <h2 className="text-lg font-bold">Tools</h2>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="space-y-2">
+                {tools.map((tool) => (
+                  <button
+                    key={tool.id}
+                    onClick={() => {
+                      setSelectedTool(tool.id);
+                      if (tool.id === "image") {
+                        handleImageToolClick();
+                      }
+                    }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      selectedTool === tool.id
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-100 hover:bg-gray-200"
+                    }`}
+                  >
+                    <tool.icon size={20} />
+                    <span>{tool.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => {
+                  const name = prompt("Save template name:");
+                  if (name) {
+                    localStorage.setItem(
+                      name,
+                      JSON.stringify({ elements, eventData })
+                    );
+                    alert("Saved!");
+                  }
+                }}
+                className="px-3 py-2 me-3 my-2 bg-green-500 text-white rounded hover:bg-green-600"
+              >
+                💾 Save
+              </button>
+
+              <button
+                onClick={() => {
+                  const name = prompt("Load template name:");
+                  if (name) {
+                    const data = localStorage.getItem(name);
+                    if (data) {
+                      const {
+                        elements: savedElements,
+                        eventData: savedEventData,
+                      } = JSON.parse(data);
+                      setElements(savedElements);
+                      setEventData(savedEventData);
+                      alert("Loaded!");
+                    } else {
+                      alert("Not found!");
+                    }
+                  }
+                }}
+                className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                📂 Load
+              </button>
+
+              <div className="mt-8">
+                <h3 className="font-semibold mb-3">Event Data</h3>
+                <div className="space-y-3!">
+                  <input
+                    type="text"
+                    placeholder="Event Title"
+                    value={eventData.title}
+                    onChange={(e) =>
+                      setEventData({ ...eventData, title: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                  />
+                  <input
+                    type="date"
+                    value={eventData.date}
+                    onChange={(e) =>
+                      setEventData({ ...eventData, date: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Time"
+                    value={eventData.time}
+                    onChange={(e) =>
+                      setEventData({ ...eventData, time: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Location"
+                    value={eventData.location}
+                    onChange={(e) =>
+                      setEventData({ ...eventData, location: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Public/Private Toggle - Desktop */}
+              <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-200">
+                <div className="flex items-center gap-4">
+                  <input
+                    type="checkbox"
+                    id="isPublic"
+                    checked={isPublic}
+                    onChange={(e) => setIsPublic(e.target.checked)}
+                    className="w-6 h-6 text-blue-600 rounded focus:ring-blue-500 cursor-pointer"
+                  />
+                  <label htmlFor="isPublic" className="cursor-pointer flex-1">
+                    <div className="font-bold text-lg text-gray-800">
+                      {isPublic ? "🌐 Public Event" : "🔒 Private Event"}
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {isPublic
+                        ? "Anyone with the link or QR code can view this invitation"
+                        : "Only you and people you directly share with can view it"}
+                    </p>
+                  </label>
+                </div>
+              </div>
+
+              {!isPublic && (
+                <div className="mt-6 p-6 bg-red-50 rounded-2xl border border-red-200">
+                  <label className="block font-semibold text-red-800 mb-2">
+                    Private Access PIN (4-6 digits)
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={privatePin}
+                    onChange={(e) =>
+                      setPrivatePin(e.target.value.replace(/\D/g, "").slice(0, 6))
+                    }
+                    placeholder="e.g., 1234"
+                    className="w-full px-4 py-3 border border-red-300 rounded-lg focus:ring-red-500 focus:border-red-500"
+                    maxLength={6}
+                  />
+                  <p className="text-sm text-red-700 mt-2">
+                    Guests must enter this PIN to view the invitation
+                  </p>
+                </div>
+              )}
+
+              <div className="mt-8 space-y-3">
+                <button
+                  onClick={saveAndGenerateLink}
+                  disabled={savingInvitation}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-linear-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 disabled:opacity-70 transition text-sm"
+                >
+                  {savingInvitation ? (
+                    <>
+                      <Loader2 className="animate-spin" size={18} />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Plus size={18} />
+                      Save & Share
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Main Canvas Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Top Bar with Zoom Controls */}
+          {/* Top Bar */}
           <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-white border-b">
-            <h1 className="text-xl font-bold mb-2 sm:mb-0">Template Editor</h1>
+            <h1 className="text-xl font-bold mb-2 sm:mb-0">
+              {isAdminMode ? "Template Editor (Admin)" : "Template Editor"}
+            </h1>
 
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
@@ -1200,7 +1484,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                         style={{
                           fontSize: `${el.fontSize || 16}px`,
                           color: el.color,
-                          backgroundColor: el.bgColor,
+                          backgroundColor: el.bgColor || 'transparent',
                           width: "100%",
                           height: "100%",
                           outline: "none",
@@ -1224,8 +1508,8 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                         style={{
                           width: "100%",
                           height: "100%",
-                          backgroundColor: el.bgColor,
-                          border: `2px solid ${el.color}`,
+                          backgroundColor: el.bgColor || 'transparent',
+                          border: `2px solid ${el.color || '#000000'}`,
                         }}
                         onClick={(e) => {
                           if (!el.locked) {
@@ -1241,8 +1525,8 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                         style={{
                           width: "100%",
                           height: "100%",
-                          backgroundColor: el.bgColor,
-                          border: `2px solid ${el.color}`,
+                          backgroundColor: el.bgColor || 'transparent',
+                          border: `2px solid ${el.color || '#000000'}`,
                           borderRadius: "50%",
                         }}
                         onClick={(e) => {
@@ -1303,8 +1587,8 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
           </div>
         </div>
 
-        {/* Right Sidebar - Properties (Desktop only) */}
-        {selectedEl && (
+        {/* Right Sidebar - Properties (Desktop only) - Hide in admin mode */}
+        {!isAdminMode && selectedEl && (
           <div className="hidden lg:block w-64 bg-white border-l border-gray-200 p-4 overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold">Properties</h2>
@@ -1418,13 +1702,22 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
                   </label>
                   <input
                     type="color"
-                    value={selectedEl.bgColor || "#ffffff"}
+                    value={selectedEl.bgColor && selectedEl.bgColor.startsWith('#') 
+                      ? selectedEl.bgColor 
+                      : '#ffffff'}
                     onChange={(e) =>
                       updateElement(selectedEl.id, { bgColor: e.target.value })
                     }
                     disabled={selectedEl.locked}
                     className="w-full h-10 rounded cursor-pointer"
                   />
+                  <button
+                    onClick={() => updateElement(selectedEl.id, { bgColor: '' })}
+                    className="mt-2 w-full px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm"
+                    disabled={selectedEl.locked}
+                  >
+                    Clear Background
+                  </button>
                 </div>
               )}
 
@@ -1489,410 +1782,768 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
         )}
       </div>
 
-      {/* Bottom Navigation Bar - Mobile only */}
-      <div className="lg:hidden border-t border-gray-200 bg-white">
-        {/* Tabs Navigation */}
-        <div className="flex border-b border-gray-200">
-          <button
-            onClick={() => setActiveTab("tools")}
-            className={`flex-1 py-3 text-sm font-medium ${
-              activeTab === "tools"
-                ? "text-blue-600 border-b-2 border-blue-600"
-                : "text-gray-500"
-            }`}
-          >
-            Tools & Data
-          </button>
-          <button
-            onClick={() => setActiveTab("properties")}
-            className={`flex-1 py-3 text-sm font-medium ${
-              activeTab === "properties"
-                ? "text-blue-600 border-b-2 border-blue-600"
-                : "text-gray-500"
-            }`}
-            disabled={!selectedEl}
-          >
-            Properties {selectedEl && `(${selectedEl.type})`}
-          </button>
-        </div>
+      {/* Bottom Navigation Bar - Mobile only - Hide in admin mode */}
+{isAdminMode ? (
+  <div className="lg:hidden border-t border-gray-200 bg-white">
+    {/* Tabs Navigation for Admin Mobile */}
+    <div className="flex border-b border-gray-200">
+      <button
+        onClick={() => setActiveTab("tools")}
+        className={`flex-1 py-3 text-sm font-medium ${
+          activeTab === "tools"
+            ? "text-blue-600 border-b-2 border-blue-600"
+            : "text-gray-500"
+        }`}
+      >
+        Template Details
+      </button>
+      <button
+        onClick={() => setActiveTab("properties")}
+        className={`flex-1 py-3 text-sm font-medium ${
+          activeTab === "properties"
+            ? "text-blue-600 border-b-2 border-blue-600"
+            : "text-gray-500"
+        }`}
+        disabled={!selectedEl}
+      >
+        Properties {selectedEl && `(${selectedEl.type})`}
+      </button>
+    </div>
 
-        {/* Tabs Content */}
-        <div className="p-4 max-h-60 overflow-y-auto">
-          {activeTab === "tools" ? (
-            <div>
-              {/* Tools Section */}
-              <div className="mb-6">
-                <h3 className="font-semibold mb-3">Tools</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {tools.map((tool) => (
-                    <button
-                      key={tool.id}
-                      onClick={() => {
-                        if (tool.id === "image") {
-                          handleImageToolClick();
-                        } else {
-                          addElement(tool.id);
-                        }
-                      }}
-                      className={`flex flex-col items-center justify-center p-3 rounded-lg transition-colors ${
-                        selectedTool === tool.id
-                          ? "bg-blue-500 text-white"
-                          : "bg-gray-100 hover:bg-gray-200"
-                      }`}
-                    >
-                      <tool.icon size={24} />
-                      <span className="text-xs mt-1">{tool.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+    {/* Tabs Content for Admin Mobile */}
+    <div className="p-4 max-h-60 overflow-y-auto">
+      {activeTab === "tools" ? (
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium mb-2">Template Name *</label>
+            <input
+              type="text"
+              value={templateName}
+              onChange={(e) => setTemplateName(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg"
+              placeholder="E.g., Elegant Wedding"
+              disabled={savingTemplate}
+            />
+          </div>
 
-              <button
-                onClick={() => {
-                  const name = prompt("Save template name:");
-                  if (name) {
-                    localStorage.setItem(
-                      name,
-                      JSON.stringify({ elements, eventData })
-                    );
-                    alert("Saved!");
-                  }
-                }}
-                className="px-3 py-2 me-3 my-2 bg-green-500 text-white rounded hover:bg-green-600"
-              >
-                💾 Save
-              </button>
+          <div>
+            <label className="block text-sm font-medium mb-2">Description</label>
+            <textarea
+              value={templateDescription}
+              onChange={(e) => setTemplateDescription(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg"
+              rows={2}
+              placeholder="Template description..."
+              disabled={savingTemplate}
+            />
+          </div>
 
-              <button
-                onClick={() => {
-                  const name = prompt("Load template name:");
-                  if (name) {
-                    const data = localStorage.getItem(name);
-                    if (data) {
-                      const {
-                        elements: savedElements,
-                        eventData: savedEventData,
-                      } = JSON.parse(data);
-                      setElements(savedElements);
-                      setEventData(savedEventData);
-                      alert("Loaded!");
-                    } else {
-                      alert("Not found!");
-                    }
-                  }
-                }}
-                className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                📂 Load
-              </button>
+          <div>
+            <label className="block text-sm font-medium mb-2">Category</label>
+            <select
+              value={templateCategory}
+              onChange={(e) => setTemplateCategory(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg"
+              disabled={savingTemplate}
+            >
+              <option value="">Select category</option>
+              {adminCategories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-              {/* Event Data Section */}
-              <div className="mb-6">
-                <h3 className="font-semibold mb-3">Event Data</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <input
-                    type="text"
-                    placeholder="Event Title"
-                    value={eventData.title}
-                    onChange={(e) =>
-                      setEventData({ ...eventData, title: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border rounded-lg text-sm"
-                  />
-                  <input
-                    type="date"
-                    value={eventData.date}
-                    onChange={(e) =>
-                      setEventData({ ...eventData, date: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border rounded-lg text-sm"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Time"
-                    value={eventData.time}
-                    onChange={(e) =>
-                      setEventData({ ...eventData, time: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border rounded-lg text-sm"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Location Link"
-                    value={eventData.location}
-                    onChange={(e) =>
-                      setEventData({ ...eventData, location: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border rounded-lg text-sm"
-                  />
-                </div>
-              </div>
-
-              {/* Public/Private Toggle - Mobile */}
-              <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isPublic}
-                    onChange={(e) => setIsPublic(e.target.checked)}
-                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <div>
-                    <div className="font-semibold text-gray-800">
-                      {isPublic ? "Public Event" : "Private Event"}
-                    </div>
-                    <p className="text-xs text-gray-600 mt-1">
-                      {isPublic
-                        ? "Visible to anyone with link"
-                        : "Only visible to you"}
-                    </p>
-                  </div>
-                </label>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="space-y-2">
+          {/* Mobile Tools Section */}
+          <div>
+            <h3 className="font-medium mb-3">Add Elements</h3>
+            <div className="grid grid-cols-4 gap-2">
+              {tools.map((tool) => (
                 <button
-                  onClick={saveAndGenerateLink}
-                  disabled={savingInvitation}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-linear-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 disabled:opacity-70 transition text-sm"
+                  key={tool.id}
+                  onClick={() => addElement(tool.id)}
+                  className="flex flex-col items-center p-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  disabled={savingTemplate}
                 >
-                  {savingInvitation ? (
-                    <>
-                      <Loader2 className="animate-spin" size={18} />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Plus size={18} />
-                      Save & Share
-                    </>
-                  )}
+                  <tool.icon size={20} />
+                  <span className="text-xs mt-1">{tool.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Mobile Save Buttons */}
+          <div className="flex gap-3 pt-4 border-t">
+            <button
+              onClick={onAdminCancel}
+              disabled={savingTemplate}
+              className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleAdminSave}
+              disabled={savingTemplate || !templateName.trim()}
+              className="flex-1 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {savingTemplate ? (
+                <>
+                  <Loader2 className="animate-spin" size={18} />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save size={18} />
+                  Save
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      ) : (
+        // Properties tab for mobile (same as existing properties)
+        <div>
+          {selectedEl ? (
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold">Element Properties</h3>
+                <button
+                  onClick={deleteElement}
+                  className="p-2 text-red-500 hover:bg-red-50 rounded"
+                >
+                  <Trash2 size={18} />
                 </button>
               </div>
-            </div>
-          ) : (
-            // Properties Tab Content
-            <div>
-              {selectedEl ? (
-                <>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold">Element Properties</h3>
-                    <button
-                      onClick={deleteElement}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium mb-1">
+                    Position
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <div className="text-xs text-gray-500 mb-1">X</div>
+                      <input
+                        type="number"
+                        value={Math.round(selectedEl.x)}
+                        onChange={(e) =>
+                          updateElement(selectedEl.id, {
+                            x: Number(e.target.value) || 0,
+                          })
+                        }
+                        disabled={selectedEl.locked}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      />
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500 mb-1">Y</div>
+                      <input
+                        type="number"
+                        value={Math.round(selectedEl.y)}
+                        onChange={(e) =>
+                          updateElement(selectedEl.id, {
+                            y: Number(e.target.value) || 0,
+                          })
+                        }
+                        disabled={selectedEl.locked}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      />
+                    </div>
                   </div>
+                </div>
 
-                  <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium mb-1">
+                    Size
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-xs font-medium mb-1">
-                        Position
-                      </label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <div className="text-xs text-gray-500 mb-1">X</div>
-                          <input
-                            type="number"
-                            value={Math.round(selectedEl.x)}
-                            onChange={(e) =>
-                              updateElement(selectedEl.id, {
-                                x: Number(e.target.value) || 0,
-                              })
-                            }
-                            disabled={selectedEl.locked}
-                            className="w-full px-2 py-1 border rounded text-sm"
-                          />
-                        </div>
-                        <div>
-                          <div className="text-xs text-gray-500 mb-1">Y</div>
-                          <input
-                            type="number"
-                            value={Math.round(selectedEl.y)}
-                            onChange={(e) =>
-                              updateElement(selectedEl.id, {
-                                y: Number(e.target.value) || 0,
-                              })
-                            }
-                            disabled={selectedEl.locked}
-                            className="w-full px-2 py-1 border rounded text-sm"
-                          />
-                        </div>
+                      <div className="text-xs text-gray-500 mb-1">
+                        Width
                       </div>
+                      <input
+                        type="number"
+                        value={Math.round(selectedEl.width)}
+                        onChange={(e) =>
+                          updateElement(selectedEl.id, {
+                            width: Number(e.target.value) || 0,
+                          })
+                        }
+                        disabled={selectedEl.locked}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      />
                     </div>
-
                     <div>
-                      <label className="block text-xs font-medium mb-1">
-                        Size
-                      </label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <div className="text-xs text-gray-500 mb-1">
-                            Width
-                          </div>
-                          <input
-                            type="number"
-                            value={Math.round(selectedEl.width)}
-                            onChange={(e) =>
-                              updateElement(selectedEl.id, {
-                                width: Number(e.target.value) || 0,
-                              })
-                            }
-                            disabled={selectedEl.locked}
-                            className="w-full px-2 py-1 border rounded text-sm"
-                          />
-                        </div>
-                        <div>
-                          <div className="text-xs text-gray-500 mb-1">
-                            Height
-                          </div>
-                          <input
-                            type="number"
-                            value={Math.round(selectedEl.height)}
-                            onChange={(e) =>
-                              updateElement(selectedEl.id, {
-                                height: Number(e.target.value) || 0,
-                              })
-                            }
-                            disabled={selectedEl.locked}
-                            className="w-full px-2 py-1 border rounded text-sm"
-                          />
-                        </div>
+                      <div className="text-xs text-gray-500 mb-1">
+                        Height
                       </div>
+                      <input
+                        type="number"
+                        value={Math.round(selectedEl.height)}
+                        onChange={(e) =>
+                          updateElement(selectedEl.id, {
+                            height: Number(e.target.value) || 0,
+                          })
+                        }
+                        disabled={selectedEl.locked}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      />
                     </div>
+                  </div>
+                </div>
 
-                    {selectedEl.type === "text" && (
-                      <div>
-                        <label className="block text-xs font-medium mb-1">
-                          Font Size
-                        </label>
-                        <input
-                          type="number"
-                          value={selectedEl.fontSize}
-                          onChange={(e) =>
-                            updateElement(selectedEl.id, {
-                              fontSize: Number(e.target.value) || 16,
-                            })
-                          }
-                          disabled={selectedEl.locked}
-                          className="w-full px-2 py-1 border rounded text-sm"
-                        />
-                      </div>
-                    )}
+                {selectedEl.type === "text" && (
+                  <div>
+                    <label className="block text-xs font-medium mb-1">
+                      Font Size
+                    </label>
+                    <input
+                      type="number"
+                      value={selectedEl.fontSize || 16}
+                      onChange={(e) =>
+                        updateElement(selectedEl.id, {
+                          fontSize: Number(e.target.value) || 16,
+                        })
+                      }
+                      disabled={selectedEl.locked}
+                      className="w-full px-2 py-1 border rounded text-sm"
+                    />
+                  </div>
+                )}
 
+                <div>
+                  <label className="block text-xs font-medium mb-1">
+                    Color
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={selectedEl.color || "#000000"}
+                      onChange={(e) =>
+                        updateElement(selectedEl.id, {
+                          color: e.target.value,
+                        })
+                      }
+                      disabled={selectedEl.locked}
+                      className="w-10 h-10 rounded cursor-pointer"
+                    />
+                    <span className="text-xs text-gray-600">
+                      {selectedEl.color || "#000000"}
+                    </span>
+                  </div>
+                </div>
+
+                {selectedEl.type !== "text" &&
+                  selectedEl.type !== "image" && (
                     <div>
                       <label className="block text-xs font-medium mb-1">
-                        Color
+                        Background
                       </label>
                       <div className="flex items-center gap-2">
                         <input
                           type="color"
-                          value={selectedEl.color || "#000000"}
+                          value={selectedEl.bgColor && selectedEl.bgColor.startsWith('#') 
+                            ? selectedEl.bgColor 
+                            : '#ffffff'}
                           onChange={(e) =>
                             updateElement(selectedEl.id, {
-                              color: e.target.value,
+                              bgColor: e.target.value,
                             })
                           }
                           disabled={selectedEl.locked}
                           className="w-10 h-10 rounded cursor-pointer"
                         />
                         <span className="text-xs text-gray-600">
-                          {selectedEl.color || "#000000"}
+                          {selectedEl.bgColor || "transparent"}
                         </span>
                       </div>
+                      <button
+                        onClick={() => updateElement(selectedEl.id, { bgColor: '' })}
+                        className="mt-2 w-full px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm"
+                        disabled={selectedEl.locked}
+                      >
+                        Clear Background
+                      </button>
                     </div>
+                  )}
 
-                    {selectedEl.type !== "text" &&
-                      selectedEl.type !== "image" && (
-                        <div>
-                          <label className="block text-xs font-medium mb-1">
-                            Background
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="color"
-                              value={selectedEl.bgColor || "#ffffff"}
-                              onChange={(e) =>
-                                updateElement(selectedEl.id, {
-                                  bgColor: e.target.value,
-                                })
-                              }
-                              disabled={selectedEl.locked}
-                              className="w-10 h-10 rounded cursor-pointer"
-                            />
-                            <span className="text-xs text-gray-600">
-                              {selectedEl.bgColor || "#ffffff"}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                    {selectedEl.type === "image" && (
-                      <div>
-                        <label className="block text-xs font-medium mb-1">
-                          Image
-                        </label>
-                        <button
-                          onClick={() => setShowImageUploadModal(true)}
-                          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm"
-                        >
-                          <Upload size={16} />
-                          {selectedEl.imageUrl ? "Change Image" : "Add Image"}
-                        </button>
-                      </div>
-                    )}
-
+                {selectedEl.type === "image" && (
+                  <div>
+                    <label className="block text-xs font-medium mb-1">
+                      Image
+                    </label>
                     <button
-                      onClick={() =>
-                        updateElement(selectedEl.id, {
-                          locked: !selectedEl.locked,
-                        })
-                      }
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm"
+                      onClick={() => setShowImageUploadModal(true)}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm"
                     >
-                      {selectedEl.locked ? (
-                        <Unlock size={16} />
-                      ) : (
-                        <Lock size={16} />
-                      )}
-                      {selectedEl.locked ? "Unlock Element" : "Lock Element"}
+                      <Upload size={16} />
+                      {selectedEl.imageUrl ? "Change Image" : "Add Image"}
                     </button>
+                  </div>
+                )}
 
-                    {/* Mobile Drag Instructions */}
-                    <div className="pt-4 border-t border-gray-200">
-                      <p className="text-xs text-gray-500 mb-2">
-                        Drag Controls:
-                      </p>
-                      <div className="text-xs text-gray-600 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <GripVertical
-                            size={12}
-                            className="text-blue-500 shrink-0"
-                          />
-                          <span>Use drag handle to move</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-blue-500 rounded-sm shrink-0"></div>
-                          <span>Use corners to resize</span>
-                        </div>
-                      </div>
+                <button
+                  onClick={() =>
+                    updateElement(selectedEl.id, {
+                      locked: !selectedEl.locked,
+                    })
+                  }
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm"
+                >
+                  {selectedEl.locked ? (
+                    <Unlock size={16} />
+                  ) : (
+                    <Lock size={16} />
+                  )}
+                  {selectedEl.locked ? "Unlock Element" : "Lock Element"}
+                </button>
+
+                {/* Mobile Drag Instructions */}
+                <div className="pt-4 border-t border-gray-200">
+                  <p className="text-xs text-gray-500 mb-2">
+                    Drag Controls:
+                  </p>
+                  <div className="text-xs text-gray-600 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <GripVertical
+                        size={12}
+                        className="text-blue-500 shrink-0"
+                      />
+                      <span>Use drag handle to move</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-sm shrink-0"></div>
+                      <span>Use corners to resize</span>
                     </div>
                   </div>
-                </>
-              ) : (
-                <div className="text-center py-4 text-gray-500">
-                  Select an element to edit its properties
                 </div>
-              )}
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-4 text-gray-500">
+              Select an element to edit its properties
             </div>
           )}
         </div>
-      </div>
+      )}
+    </div>
+  </div>
+) : (
+  // Original non-admin mobile interface
+  <div className="lg:hidden border-t border-gray-200 bg-white">
+    {/* Tabs Navigation */}
+    <div className="flex border-b border-gray-200">
+      <button
+        onClick={() => setActiveTab("tools")}
+        className={`flex-1 py-3 text-sm font-medium ${
+          activeTab === "tools"
+            ? "text-blue-600 border-b-2 border-blue-600"
+            : "text-gray-500"
+        }`}
+      >
+        Tools & Data
+      </button>
+      <button
+        onClick={() => setActiveTab("properties")}
+        className={`flex-1 py-3 text-sm font-medium ${
+          activeTab === "properties"
+            ? "text-blue-600 border-b-2 border-blue-600"
+            : "text-gray-500"
+        }`}
+        disabled={!selectedEl}
+      >
+        Properties {selectedEl && `(${selectedEl.type})`}
+      </button>
+    </div>
 
-      {/* Share Modal */}
-      {showShareModal && invitationId && (
+    {/* Tabs Content */}
+    <div className="p-4 max-h-60 overflow-y-auto">
+      {activeTab === "tools" ? (
+        <div>
+          {/* Tools Section */}
+          <div className="mb-6">
+            <h3 className="font-semibold mb-3">Tools</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {tools.map((tool) => (
+                <button
+                  key={tool.id}
+                  onClick={() => {
+                    if (tool.id === "image") {
+                      handleImageToolClick();
+                    } else {
+                      addElement(tool.id);
+                    }
+                  }}
+                  className={`flex flex-col items-center justify-center p-3 rounded-lg transition-colors ${
+                    selectedTool === tool.id
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-100 hover:bg-gray-200"
+                  }`}
+                >
+                  <tool.icon size={24} />
+                  <span className="text-xs mt-1">{tool.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              const name = prompt("Save template name:");
+              if (name) {
+                localStorage.setItem(
+                  name,
+                  JSON.stringify({ elements, eventData })
+                );
+                alert("Saved!");
+              }
+            }}
+            className="px-3 py-2 me-3 my-2 bg-green-500 text-white rounded hover:bg-green-600"
+          >
+            💾 Save
+          </button>
+
+          <button
+            onClick={() => {
+              const name = prompt("Load template name:");
+              if (name) {
+                const data = localStorage.getItem(name);
+                if (data) {
+                  const {
+                    elements: savedElements,
+                    eventData: savedEventData,
+                  } = JSON.parse(data);
+                  setElements(savedElements);
+                  setEventData(savedEventData);
+                  alert("Loaded!");
+                } else {
+                  alert("Not found!");
+                }
+              }
+            }}
+            className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            📂 Load
+          </button>
+
+          {/* Event Data Section */}
+          <div className="mb-6">
+            <h3 className="font-semibold mb-3">Event Data</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input
+                type="text"
+                placeholder="Event Title"
+                value={eventData.title}
+                onChange={(e) =>
+                  setEventData({ ...eventData, title: e.target.value })
+                }
+                className="w-full px-3 py-2 border rounded-lg text-sm"
+              />
+              <input
+                type="date"
+                value={eventData.date}
+                onChange={(e) =>
+                  setEventData({ ...eventData, date: e.target.value })
+                }
+                className="w-full px-3 py-2 border rounded-lg text-sm"
+              />
+              <input
+                type="text"
+                placeholder="Time"
+                value={eventData.time}
+                onChange={(e) =>
+                  setEventData({ ...eventData, time: e.target.value })
+                }
+                className="w-full px-3 py-2 border rounded-lg text-sm"
+              />
+              <input
+                type="text"
+                placeholder="Location Link"
+                value={eventData.location}
+                onChange={(e) =>
+                  setEventData({ ...eventData, location: e.target.value })
+                }
+                className="w-full px-3 py-2 border rounded-lg text-sm"
+              />
+            </div>
+          </div>
+
+          {/* Public/Private Toggle - Mobile */}
+          <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isPublic}
+                onChange={(e) => setIsPublic(e.target.checked)}
+                className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+              />
+              <div>
+                <div className="font-semibold text-gray-800">
+                  {isPublic ? "Public Event" : "Private Event"}
+                </div>
+                <p className="text-xs text-gray-600 mt-1">
+                  {isPublic
+                    ? "Visible to anyone with link"
+                    : "Only visible to you"}
+                </p>
+              </div>
+            </label>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="space-y-2">
+            <button
+              onClick={saveAndGenerateLink}
+              disabled={savingInvitation}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-linear-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 disabled:opacity-70 transition text-sm"
+            >
+              {savingInvitation ? (
+                <>
+                  <Loader2 className="animate-spin" size={18} />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Plus size={18} />
+                  Save & Share
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      ) : (
+        // Properties Tab Content
+        <div>
+          {selectedEl ? (
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold">Element Properties</h3>
+                <button
+                  onClick={deleteElement}
+                  className="p-2 text-red-500 hover:bg-red-50 rounded"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium mb-1">
+                    Position
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <div className="text-xs text-gray-500 mb-1">X</div>
+                      <input
+                        type="number"
+                        value={Math.round(selectedEl.x)}
+                        onChange={(e) =>
+                          updateElement(selectedEl.id, {
+                            x: Number(e.target.value) || 0,
+                          })
+                        }
+                        disabled={selectedEl.locked}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      />
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500 mb-1">Y</div>
+                      <input
+                        type="number"
+                        value={Math.round(selectedEl.y)}
+                        onChange={(e) =>
+                          updateElement(selectedEl.id, {
+                            y: Number(e.target.value) || 0,
+                          })
+                        }
+                        disabled={selectedEl.locked}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium mb-1">
+                    Size
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <div className="text-xs text-gray-500 mb-1">
+                        Width
+                      </div>
+                      <input
+                        type="number"
+                        value={Math.round(selectedEl.width)}
+                        onChange={(e) =>
+                          updateElement(selectedEl.id, {
+                            width: Number(e.target.value) || 0,
+                          })
+                        }
+                        disabled={selectedEl.locked}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      />
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500 mb-1">
+                        Height
+                      </div>
+                      <input
+                        type="number"
+                        value={Math.round(selectedEl.height)}
+                        onChange={(e) =>
+                          updateElement(selectedEl.id, {
+                            height: Number(e.target.value) || 0,
+                          })
+                        }
+                        disabled={selectedEl.locked}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {selectedEl.type === "text" && (
+                  <div>
+                    <label className="block text-xs font-medium mb-1">
+                      Font Size
+                    </label>
+                    <input
+                      type="number"
+                      value={selectedEl.fontSize || 16}
+                      onChange={(e) =>
+                        updateElement(selectedEl.id, {
+                          fontSize: Number(e.target.value) || 16,
+                        })
+                      }
+                      disabled={selectedEl.locked}
+                      className="w-full px-2 py-1 border rounded text-sm"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-medium mb-1">
+                    Color
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={selectedEl.color || "#000000"}
+                      onChange={(e) =>
+                        updateElement(selectedEl.id, {
+                          color: e.target.value,
+                        })
+                      }
+                      disabled={selectedEl.locked}
+                      className="w-10 h-10 rounded cursor-pointer"
+                    />
+                    <span className="text-xs text-gray-600">
+                      {selectedEl.color || "#000000"}
+                    </span>
+                  </div>
+                </div>
+
+                {selectedEl.type !== "text" &&
+                  selectedEl.type !== "image" && (
+                    <div>
+                      <label className="block text-xs font-medium mb-1">
+                        Background
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={selectedEl.bgColor && selectedEl.bgColor.startsWith('#') 
+                            ? selectedEl.bgColor 
+                            : '#ffffff'}
+                          onChange={(e) =>
+                            updateElement(selectedEl.id, {
+                              bgColor: e.target.value,
+                            })
+                          }
+                          disabled={selectedEl.locked}
+                          className="w-10 h-10 rounded cursor-pointer"
+                        />
+                        <span className="text-xs text-gray-600">
+                          {selectedEl.bgColor || "transparent"}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => updateElement(selectedEl.id, { bgColor: '' })}
+                        className="mt-2 w-full px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm"
+                        disabled={selectedEl.locked}
+                      >
+                        Clear Background
+                      </button>
+                    </div>
+                  )}
+
+                {selectedEl.type === "image" && (
+                  <div>
+                    <label className="block text-xs font-medium mb-1">
+                      Image
+                    </label>
+                    <button
+                      onClick={() => setShowImageUploadModal(true)}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm"
+                    >
+                      <Upload size={16} />
+                      {selectedEl.imageUrl ? "Change Image" : "Add Image"}
+                    </button>
+                  </div>
+                )}
+
+                <button
+                  onClick={() =>
+                    updateElement(selectedEl.id, {
+                      locked: !selectedEl.locked,
+                    })
+                  }
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm"
+                >
+                  {selectedEl.locked ? (
+                    <Unlock size={16} />
+                  ) : (
+                    <Lock size={16} />
+                  )}
+                  {selectedEl.locked ? "Unlock Element" : "Lock Element"}
+                </button>
+
+                {/* Mobile Drag Instructions */}
+                <div className="pt-4 border-t border-gray-200">
+                  <p className="text-xs text-gray-500 mb-2">
+                    Drag Controls:
+                  </p>
+                  <div className="text-xs text-gray-600 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <GripVertical
+                        size={12}
+                        className="text-blue-500 shrink-0"
+                      />
+                      <span>Use drag handle to move</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-sm shrink-0"></div>
+                      <span>Use corners to resize</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-4 text-gray-500">
+              Select an element to edit its properties
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
+      {/* Share Modal - Hide in admin mode */}
+      {!isAdminMode && showShareModal && invitationId && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 sm:p-8 relative">
             <button

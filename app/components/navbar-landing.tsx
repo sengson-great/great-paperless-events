@@ -11,6 +11,7 @@ import { useActiveSection } from "@/hooks/useScrollAnimation";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
+// Navigation links for the landing page
 const navLinks = [
   { name: "Home", href: "#home" },
   { name: "Features", href: "#features" },
@@ -19,34 +20,49 @@ const navLinks = [
 ];
 
 export default function NavbarLanding() {
+  // Authentication hook to get user info
   const { user, loading, isAdmin } = useAuth();
+  
+  // State for scroll effect
   const [isScrolled, setIsScrolled] = useState(false);
+  
+  // State for mobile menu toggle
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Hook to track which section is currently active based on scroll position
   const activeSection = useActiveSection(['home', 'features', 'about', 'contact']);
 
+  // Effect to add/remove scroll listener for navbar background change
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      setIsScrolled(window.scrollY > 20); // Navbar changes style after 20px scroll
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  /**
+   * Smooth scrolls to a section on the page
+   * @param href - The CSS selector for the section (e.g., "#home")
+   */
   const scrollToSection = (href: string) => {
     const element = document.querySelector(href);
     if (element) {
-      const offset = 80;
+      const offset = 80; // Offset to account for fixed navbar height
       const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      const offsetPosition = elementPosition + window.scrollY - offset;
       window.scrollTo({ top: offsetPosition, behavior: "smooth" });
     }
-    setIsMobileMenuOpen(false);
+    setIsMobileMenuOpen(false); // Close mobile menu after clicking a link
   };
 
+  /**
+   * Handles user logout
+   */
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      window.location.href = "/";
+      window.location.href = "/"; // Redirect to homepage after logout
     } catch (error) {
       console.error("Logout error:", error);
       alert("Failed to log out.");
@@ -55,6 +71,7 @@ export default function NavbarLanding() {
 
   return (
     <>
+      {/* Main Navigation Bar */}
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
@@ -152,23 +169,26 @@ export default function NavbarLanding() {
         </div>
       </nav>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu Overlay */}
       <div
         className={`fixed inset-0 z-40 lg:hidden transition-all duration-300 ${
           isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
       >
+        {/* Background overlay that closes menu when clicked */}
         <div
           className="absolute inset-0 bg-black/50 backdrop-blur-sm"
           onClick={() => setIsMobileMenuOpen(false)}
         />
 
+        {/* Mobile menu panel */}
         <div
           className={`absolute top-20 right-0 left-0 bg-white shadow-2xl transition-transform duration-300 ${
             isMobileMenuOpen ? "translate-y-0" : "-translate-y-full"
           }`}
         >
           <div className="px-6 py-8 space-y-6">
+            {/* Mobile navigation links */}
             {navLinks.map((link) => (
               <button
                 key={link.name}
@@ -181,6 +201,7 @@ export default function NavbarLanding() {
               </button>
             ))}
 
+            {/* Mobile authentication buttons */}
             <div className="pt-4 border-t border-gray-200 space-y-3">
               {loading ? (
                 <div className="w-full h-12 bg-gray-200 rounded-lg animate-pulse" />
@@ -208,11 +229,11 @@ export default function NavbarLanding() {
                     Logout
                   </button>
                   <Link href="/chat" className="block">
-                  <button
-                    className="w-full px-6 py-3 bg-linear-to-r from-blue-500 to-teal-600 text-white rounded-lg font-medium hover:from-blue-600 hover:to-teal-700 transition"
-                  >
-                    AI Assistant
-                  </button>
+                    <button
+                      className="w-full px-6 py-3 bg-linear-to-r from-blue-500 to-teal-600 text-white rounded-lg font-medium hover:from-blue-600 hover:to-teal-700 transition"
+                    >
+                      AI Assistant
+                    </button>
                   </Link>
                 </>
               ) : (

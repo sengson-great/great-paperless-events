@@ -33,49 +33,115 @@ interface EventTemplateViewerProps {
 
 const EventTemplateViewer: React.FC<EventTemplateViewerProps> = ({ elements, eventData }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [canvasDimensions, setCanvasDimensions] = useState({ width: 800, height: 1000 });
+  const [canvasSize, setCanvasSize] = useState({ width: 300, height: 375 });
   const [scale, setScale] = useState(1);
+  const [containerHeight, setContainerHeight] = useState(0);
 
-  // Calculate responsive canvas dimensions
   useEffect(() => {
     const updateCanvasSize = () => {
       if (!containerRef.current) return;
       
-      const containerWidth = containerRef.current.clientWidth;
-      const containerHeight = containerRef.current.clientHeight;
+      const container = containerRef.current;
+      const containerWidth = container.clientWidth;
+      const availableHeight = container.clientHeight;
       
-      // Calculate scale to fit container while maintaining aspect ratio
-      const widthScale = containerWidth / 800;
-      const heightScale = containerHeight / 1000;
-      const newScale = Math.min(widthScale, heightScale, 1); // Don't scale up beyond 1
+      setContainerHeight(availableHeight);
       
-      setScale(newScale);
+      // For very small screens
+      const isExtraSmall = containerWidth < 320;
+      const isSmall = containerWidth < 480;
+      const isMedium = containerWidth < 768;
       
-      // Set actual dimensions for the canvas
-      const width = 800 * newScale;
-      const height = 1000 * newScale;
-      setCanvasDimensions({ width, height });
+      // Define target canvas sizes with proper aspect ratio (4:5)
+      let targetWidth, targetHeight;
+      
+      if (isExtraSmall) {
+        targetWidth = Math.min(containerWidth * 0.9, 260); // 90% of container or 260px max
+        targetHeight = targetWidth * 1.25; // 4:5 ratio (800:1000 = 1:1.25)
+      } else if (isSmall) {
+        targetWidth = Math.min(containerWidth * 0.95, 350);
+        targetHeight = targetWidth * 1.25;
+      } else if (isMedium) {
+        targetWidth = Math.min(containerWidth * 0.9, 500);
+        targetHeight = targetWidth * 1.25;
+      } else {
+        targetWidth = Math.min(containerWidth * 0.85, 600);
+        targetHeight = targetWidth * 1.25;
+      }
+      
+      // Ensure canvas doesn't exceed available height (with some margin)
+      const maxHeight = availableHeight * 0.9; // 90% of available height
+      if (targetHeight > maxHeight) {
+        targetHeight = maxHeight;
+        targetWidth = targetHeight * 0.8; // Reverse calculation (5:4)
+      }
+      
+      // Set minimum sizes
+      const minWidth = isExtraSmall ? 200 : 250;
+      const minHeight = minWidth * 1.25;
+      
+      targetWidth = Math.max(minWidth, targetWidth);
+      targetHeight = Math.max(minHeight, targetHeight);
+      
+      // Ensure we stay within container bounds
+      targetWidth = Math.min(targetWidth, containerWidth);
+      targetHeight = Math.min(targetHeight, availableHeight);
+      
+      // Update state
+      setCanvasSize({ width: targetWidth, height: targetHeight });
+      
+      // Calculate scale relative to original 800x1000
+      const scaleFactor = targetWidth / 800;
+      setScale(scaleFactor);
+      
+      console.log('Canvas sizing:', {
+        container: { width: containerWidth, height: availableHeight },
+        canvas: { width: targetWidth, height: targetHeight },
+        scale: scaleFactor,
+        fitsHeight: targetHeight <= availableHeight
+      });
     };
 
     updateCanvasSize();
+    
+    const resizeObserver = new ResizeObserver(updateCanvasSize);
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+    
     window.addEventListener('resize', updateCanvasSize);
     
-    return () => window.removeEventListener('resize', updateCanvasSize);
+    return () => {
+      if (containerRef.current) {
+        resizeObserver.unobserve(containerRef.current);
+      }
+      window.removeEventListener('resize', updateCanvasSize);
+    };
   }, []);
 
   return (
     <div 
       ref={containerRef}
-      className="relative w-full h-full flex items-center justify-center overflow-hidden"
-      style={{ minHeight: '400px' }}
+      className="relative w-full h-full flex items-center justify-center overflow-hidden bg-gray-50"
+      style={{ 
+        minHeight: '250px',
+        height: '100%',
+        width: '100%',
+        position: 'relative',
+      }}
     >
       <div
-        className="relative bg-white shadow-xl"
+        className="relative bg-white shadow-lg"
         style={{
-          width: `${canvasDimensions.width}px`,
-          height: `${canvasDimensions.height}px`,
-          transform: `scale(${scale})`,
-          transformOrigin: 'center',
+          width: `${canvasSize.width}px`,
+          height: `${canvasSize.height}px`,
+          // Center the canvas with proper margins
+          margin: 'auto',
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          boxSizing: 'border-box',
         }}
       >
         {/* Render all elements */}
@@ -84,10 +150,11 @@ const EventTemplateViewer: React.FC<EventTemplateViewerProps> = ({ elements, eve
             key={el.id}
             className="absolute"
             style={{
-              left: `${(el.x / 800) * 100}%`,
-              top: `${(el.y / 1000) * 100}%`,
-              width: `${(el.width / 800) * 100}%`,
-              height: `${(el.height / 1000) * 100}%`,
+              left: `${el.x * scale}px`,
+              top: `${el.y * scale}px`,
+              width: `${el.width * scale}px`,
+              height: `${el.height * scale}px`,
+              boxSizing: 'border-box',
             }}
           >
             {el.type === 'text' && (
@@ -98,10 +165,13 @@ const EventTemplateViewer: React.FC<EventTemplateViewerProps> = ({ elements, eve
                   backgroundColor: el.bgColor,
                   width: '100%',
                   height: '100%',
-                  padding: `${8 * scale}px`,
+                  padding: `${Math.max(4, 8 * scale)}px`, // Minimum 4px padding
                   boxSizing: 'border-box',
                   overflow: 'hidden',
                   wordBreak: 'break-word',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-start',
                 }}
               >
                 {el.content}
@@ -113,7 +183,7 @@ const EventTemplateViewer: React.FC<EventTemplateViewerProps> = ({ elements, eve
                   width: '100%',
                   height: '100%',
                   backgroundColor: el.bgColor,
-                  border: `${2 * scale}px solid ${el.color}`,
+                  border: `${Math.max(1, 2 * scale)}px solid ${el.color}`,
                 }}
               />
             )}
@@ -123,7 +193,7 @@ const EventTemplateViewer: React.FC<EventTemplateViewerProps> = ({ elements, eve
                   width: '100%',
                   height: '100%',
                   backgroundColor: el.bgColor,
-                  border: `${2 * scale}px solid ${el.color}`,
+                  border: `${Math.max(1, 2 * scale)}px solid ${el.color}`,
                   borderRadius: '50%',
                 }}
               />
@@ -136,11 +206,23 @@ const EventTemplateViewer: React.FC<EventTemplateViewerProps> = ({ elements, eve
                 onError={(e) => {
                   e.currentTarget.src = 'https://via.placeholder.com/150x150?text=Image+Error';
                 }}
+                style={{
+                  display: 'block',
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                }}
               />
             )}
           </div>
         ))}
       </div>
+      
+      {/* Show warning if canvas is being cut */}
+      {containerHeight > 0 && canvasSize.height > containerHeight && (
+        <div className="absolute bottom-2 left-2 bg-yellow-500 text-white text-xs p-1 rounded">
+          Canvas may be cut off
+        </div>
+      )}
     </div>
   );
 };

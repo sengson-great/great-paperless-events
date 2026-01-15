@@ -29,11 +29,6 @@ export default function Footer() {
                         <h3 className="text-lg font-semibold text-white">Service</h3>
                         <ul className="space-y-3 text-gray-400">
                             <li>
-                                <Link href="/template" className="hover:text-teal-400 transition-colors">
-                                    Templates
-                                </Link>
-                            </li>
-                            <li>
                                 <Link href="/templateSelector" className="hover:text-teal-400 transition-colors">
                                     Create Invitation
                                 </Link>

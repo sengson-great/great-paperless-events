@@ -13,7 +13,10 @@ import {
   collection, addDoc, updateDoc, deleteDoc, doc, 
   getDocs, orderBy, query, serverTimestamp
 } from 'firebase/firestore';
+import AdminTemplateBuilder from '@/app/components/AdminTemplateBuilder';
+import EventTemplateEditor from '@/app/components/EventTemplateEditor';
 
+// TypeScript interfaces for data structures
 interface Category {
   id: string;
   name: string;
@@ -22,45 +25,50 @@ interface Category {
 
 interface Element {
   id: number;
-  type: 'text' | 'image' | 'rectangle';
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  content?: string;
-  fontSize?: number;
-  color?: string;
-  bgColor?: string;
-  rotation?: number;
-  imageUrl?: string;
-  locked?: boolean;
+  type: 'text' | 'image' | 'rectangle';  // Types of design elements
+  x: number;  // X position on canvas
+  y: number;  // Y position on canvas
+  width: number;  // Element width
+  height: number;  // Element height
+  content?: string;  // Text content for text elements
+  fontSize?: number;  // Font size for text
+  color?: string;  // Text color
+  bgColor?: string;  // Background color
+  rotation?: number;  // Rotation angle in degrees
+  imageUrl?: string;  // URL for image elements
+  locked?: boolean;  // Whether element can be edited/moved
 }
 
 interface Template {
   id: string;
   name: string;
-  categoryId: string;
-  elements: Element[];
-  placeholders: string[];
-  previewImage?: string;
-  description?: string;
-  isActive: boolean;
-  createdAt: any;
+  categoryId: string;  // ID of parent category
+  elements: Element[];  // Array of canvas elements
+  placeholders: string[];  // Template placeholders for dynamic content
+  previewImage?: string;  // Template preview thumbnail
+  description?: string;  // Template description
+  isActive: boolean;  // Whether template is active/usable
+  createdAt: any;  // Creation timestamp
 }
 
 const EventDashboard: React.FC = () => {
+  // Authentication hook to check admin status
   const { isAdmin, loading: authLoading } = useAuth();
+  
+  // State for active tab (categories or templates view)
   const [activeTab, setActiveTab] = useState<'categories' | 'templates'>('categories');
+  
+  // Data state
   const [categories, setCategories] = useState<Category[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Category modal
+  // Category modal state
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [categoryName, setCategoryName] = useState('');
 
-  // Template form modal
+  // Template form modal state
   const [showTemplateForm, setShowTemplateForm] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
   const [templateName, setTemplateName] = useState('');
@@ -68,42 +76,54 @@ const EventDashboard: React.FC = () => {
   const [templateDescription, setTemplateDescription] = useState('');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   
-  // Canvas elements
+  // Canvas elements state - starts with a default background rectangle
   const [elements, setElements] = useState<Element[]>([
-    { id: Date.now(), type: 'rectangle', x: 0, y: 0, width: 800, height: 1000, bgColor: '#ffffff', locked: true }
+    { 
+      id: Date.now(), 
+      type: 'rectangle', 
+      x: 0, y: 0, 
+      width: 800, height: 1000, 
+      bgColor: '#ffffff', 
+      locked: true  // Background is locked by default
+    }
   ]);
+  
+  // Currently selected element ID
   const [selectedElementId, setSelectedElementId] = useState<number | null>(null);
   
-  // Drag state
+  // Drag state for element movement
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [elementStart, setElementStart] = useState({ x: 0, y: 0 });
-  const [resizing, setResizing] = useState<{ elementId: number | null; corner: string | null }>({ elementId: null, corner: null });
-
-  // Placeholders
-  // const [placeholders, setPlaceholders] = useState<string[]>([]);
-  // const [newPlaceholderLabel, setNewPlaceholderLabel] = useState('');
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });  // Mouse start position
+  const [elementStart, setElementStart] = useState({ x: 0, y: 0 });  // Element start position
+  
+  // Resize state for element resizing
+  const [resizing, setResizing] = useState<{ 
+    elementId: number | null; 
+    corner: string | null  // Which corner is being dragged (nw, ne, sw, se)
+  }>({ elementId: null, corner: null });
 
   // Image upload state
   const [uploadingImage, setUploadingImage] = useState(false);
 
-  // Canvas ref
+  // Canvas container ref for calculating relative positions
   const canvasRef = useRef<HTMLDivElement>(null);
 
+  // Debug effect to log state changes
   useEffect(() => {
     console.log("Categories updated:", categories);
     console.log("Templates updated:", templates);
   }, [categories, templates]);
 
+  // Main data fetching effect
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!isAdmin) return;  // Only fetch if user is admin
 
     const fetchData = async () => {
       try {
         setLoading(true);
         console.log("Fetching categories...");
         
-        // Fetch categories
+        // Fetch categories ordered by their order field
         const catQuery = query(collection(db, 'categories'), orderBy('order'));
         const catSnap = await getDocs(catQuery);
         
@@ -115,6 +135,7 @@ const EventDashboard: React.FC = () => {
           return;
         }
         
+        // Map Firestore documents to Category objects
         const cats = catSnap.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
@@ -122,7 +143,7 @@ const EventDashboard: React.FC = () => {
         
         setCategories(cats);
         
-        // Fetch all templates - Use Promise.all for parallel fetching
+        // Fetch templates for each category in parallel
         const templatePromises = cats.map(async (cat) => {
           try {
             const tempQuery = query(
@@ -143,6 +164,7 @@ const EventDashboard: React.FC = () => {
         });
         
         const templateResults = await Promise.all(templatePromises);
+        // Flatten array of arrays into single array
         const allTemplates = templateResults.flat();
         
         setTemplates(allTemplates);
@@ -161,17 +183,24 @@ const EventDashboard: React.FC = () => {
     fetchData();
   }, [isAdmin]);
 
-  // Drag and Drop Handlers
+  // ==================== DRAG AND DROP HANDLERS ====================
+
+  /**
+   * Handles start of drag operation on an element
+   * @param e - Mouse event
+   * @param elementId - ID of element being dragged
+   */
   const handleDragStart = (e: React.MouseEvent, elementId: number) => {
     if (!canvasRef.current) return;
     
     const element = elements.find(el => el.id === elementId);
-    if (!element || element.locked) return;
+    if (!element || element.locked) return;  // Don't drag locked elements
     
     e.preventDefault();
     setIsDragging(true);
     setSelectedElementId(elementId);
     
+    // Calculate mouse position relative to canvas
     const canvasRect = canvasRef.current.getBoundingClientRect();
     setDragStart({
       x: e.clientX - canvasRect.left,
@@ -183,28 +212,46 @@ const EventDashboard: React.FC = () => {
     });
   };
 
+  /**
+   * Handles drag movement
+   * @param e - Mouse event
+   */
   const handleDrag = (e: React.MouseEvent) => {
     if (!isDragging || !selectedElementId || !canvasRef.current) return;
     
     const canvasRect = canvasRef.current.getBoundingClientRect();
+    // Calculate how far mouse has moved
     const deltaX = e.clientX - canvasRect.left - dragStart.x;
     const deltaY = e.clientY - canvasRect.top - dragStart.y;
     
-    const newX = Math.max(0, Math.min(800 - elements.find(el => el.id === selectedElementId)!.width, elementStart.x + deltaX));
-    const newY = Math.max(0, Math.min(1000 - elements.find(el => el.id === selectedElementId)!.height, elementStart.y + deltaY));
+    // Calculate new position, constrained within canvas bounds
+    const element = elements.find(el => el.id === selectedElementId)!;
+    const newX = Math.max(0, Math.min(800 - element.width, elementStart.x + deltaX));
+    const newY = Math.max(0, Math.min(1000 - element.height, elementStart.y + deltaY));
     
+    // Update element position
     updateElement(selectedElementId, { x: newX, y: newY });
   };
 
+  /**
+   * Ends drag operation
+   */
   const handleDragEnd = () => {
     setIsDragging(false);
   };
 
-  // Resize Handlers
+  // ==================== RESIZE HANDLERS ====================
+
+  /**
+   * Starts resizing an element from a specific corner
+   * @param e - Mouse event
+   * @param elementId - ID of element to resize
+   * @param corner - Which corner to resize from (nw, ne, sw, se)
+   */
   const handleResizeStart = (e: React.MouseEvent, elementId: number, corner: string) => {
     e.stopPropagation();
     const element = elements.find(el => el.id === elementId);
-    if (!element || element.locked) return;
+    if (!element || element.locked) return;  // Don't resize locked elements
     
     setResizing({ elementId, corner });
     setSelectedElementId(elementId);
@@ -215,6 +262,7 @@ const EventDashboard: React.FC = () => {
         x: e.clientX - canvasRect.left,
         y: e.clientY - canvasRect.top
       });
+      // Store starting dimensions
       setElementStart({
         x: element.width,
         y: element.height
@@ -222,6 +270,10 @@ const EventDashboard: React.FC = () => {
     }
   };
 
+  /**
+   * Handles resizing movement
+   * @param e - Mouse event
+   */
   const handleResize = (e: React.MouseEvent) => {
     if (!resizing.elementId || !canvasRef.current) return;
     
@@ -238,22 +290,23 @@ const EventDashboard: React.FC = () => {
     let newY = element.y;
     
     // Calculate new dimensions based on which corner is being dragged
+    // Each corner requires different calculations for position and size
     switch (resizing.corner) {
-      case 'se':
+      case 'se':  // Southeast corner - resize width and height, keep position
         newWidth = Math.max(50, elementStart.x + deltaX);
         newHeight = Math.max(50, elementStart.y + deltaY);
         break;
-      case 'sw':
+      case 'sw':  // Southwest corner - resize width and height, adjust X position
         newWidth = Math.max(50, elementStart.x - deltaX);
         newHeight = Math.max(50, elementStart.y + deltaY);
         newX = element.x + deltaX;
         break;
-      case 'ne':
+      case 'ne':  // Northeast corner - resize width and height, adjust Y position
         newWidth = Math.max(50, elementStart.x + deltaX);
         newHeight = Math.max(50, elementStart.y - deltaY);
         newY = element.y + deltaY;
         break;
-      case 'nw':
+      case 'nw':  // Northwest corner - resize width and height, adjust both X and Y
         newWidth = Math.max(50, elementStart.x - deltaX);
         newHeight = Math.max(50, elementStart.y - deltaY);
         newX = element.x + deltaX;
@@ -261,7 +314,7 @@ const EventDashboard: React.FC = () => {
         break;
     }
     
-    // Keep within canvas bounds
+    // Keep element within canvas bounds
     if (newX < 0) {
       newWidth += newX;
       newX = 0;
@@ -289,11 +342,19 @@ const EventDashboard: React.FC = () => {
     });
   };
 
+  /**
+   * Ends resizing operation
+   */
   const handleResizeEnd = () => {
     setResizing({ elementId: null, corner: null });
   };
 
-  // Add mouse event listeners for global dragging
+  // ==================== GLOBAL MOUSE EVENT LISTENERS ====================
+
+  /**
+   * Sets up global mouse event listeners for drag and resize operations
+   * This allows dragging/resizing to continue even if mouse leaves the element
+   */
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging) {
@@ -322,7 +383,11 @@ const EventDashboard: React.FC = () => {
     };
   }, [isDragging, resizing]);
 
-  // Category handlers
+  // ==================== CATEGORY HANDLERS ====================
+
+  /**
+   * Saves a new category or updates an existing one
+   */
   const handleSaveCategory = async () => {
     if (!categoryName.trim()) {
       alert('Category name is required');
@@ -337,11 +402,13 @@ const EventDashboard: React.FC = () => {
       };
 
       if (editingCategory) {
+        // Update existing category
         await updateDoc(doc(db, 'categories', editingCategory.id), categoryData);
         setCategories(categories.map(cat => 
           cat.id === editingCategory.id ? { ...cat, name: categoryName.trim() } : cat
         ));
       } else {
+        // Create new category
         const docRef = await addDoc(collection(db, 'categories'), {
           ...categoryData,
           createdAt: serverTimestamp(),
@@ -358,6 +425,10 @@ const EventDashboard: React.FC = () => {
     }
   };
 
+  /**
+   * Deletes a category and all its templates
+   * @param id - Category ID to delete
+   */
   const handleDeleteCategory = async (id: string) => {
     if (!confirm('Delete this category? This will also delete all templates in this category.')) return;
     
@@ -385,7 +456,11 @@ const EventDashboard: React.FC = () => {
     }
   };
 
-  // Element management
+  // ==================== ELEMENT MANAGEMENT ====================
+
+  /**
+   * Adds a new text element to the canvas
+   */
   const addTextElement = () => {
     const newEl: Element = {
       id: Date.now(),
@@ -403,6 +478,9 @@ const EventDashboard: React.FC = () => {
     setSelectedElementId(newEl.id);
   };
 
+  /**
+   * Adds a new image element to the canvas
+   */
   const addImageElement = () => {
     const newEl: Element = {
       id: Date.now(),
@@ -417,6 +495,11 @@ const EventDashboard: React.FC = () => {
     setSelectedElementId(newEl.id);
   };
 
+  /**
+   * Handles image upload for an image element
+   * @param elementId - ID of element to update
+   * @param file - Image file to upload
+   */
   const handleImageUpload = (elementId: number, file: File) => {
     setUploadingImage(true);
     
@@ -440,10 +523,19 @@ const EventDashboard: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
+  /**
+   * Updates a specific element's properties
+   * @param id - Element ID to update
+   * @param updates - Partial element object with new values
+   */
   const updateElement = (id: number, updates: Partial<Element>) => {
     setElements(elements.map(el => el.id === id ? { ...el, ...updates } : el));
   };
 
+  /**
+   * Deletes an element from the canvas
+   * @param id - Element ID to delete
+   */
   const deleteElement = (id: number) => {
     const elementToDelete = elements.find(el => el.id === id);
     if (elementToDelete?.locked) {
@@ -455,6 +547,10 @@ const EventDashboard: React.FC = () => {
     if (selectedElementId === id) setSelectedElementId(null);
   };
 
+  /**
+   * Toggles the lock state of an element
+   * @param id - Element ID to toggle lock
+   */
   const toggleElementLock = (id: number) => {
     const element = elements.find(el => el.id === id);
     if (element) {
@@ -462,65 +558,91 @@ const EventDashboard: React.FC = () => {
     }
   };
 
+  // Get the currently selected element
   const selectedElement = elements.find(el => el.id === selectedElementId);
 
-  // Placeholder helpers
+  // ==================== TEMPLATE SAVE ====================
+
+  /**
+   * Generates a key from a placeholder label
+   * @param label - Placeholder label
+   * @returns Sanitized key string
+   */
   const generateKey = (label: string): string => {
     return label.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
   };
 
-  // Template save
-  const handleSaveTemplate = async () => {
-    if (!templateName.trim() || !templateCategory || elements.length <= 1) {
-      alert('Name, category, and at least one element required');
-      return;
-    }
-
+  /**
+   * Saves or updates a template
+   */
+  const handleSaveTemplate = async (templateElements: any[], metadata: any) => {
     try {
+      // Clean the data - remove undefined values
+      const cleanedElements = templateElements.map(el => {
+        const cleaned: any = {};
+        for (const [key, value] of Object.entries(el)) {
+          if (value !== undefined && value !== null) {
+            cleaned[key] = value;
+          }
+        }
+        return cleaned;
+      });
+  
       const templateData = {
         name: templateName.trim(),
         categoryId: templateCategory,
-        elements: elements.map(el => ({
-          ...el,
-          id: typeof el.id === 'number' ? el.id.toString() : el.id
-        })),
+        elements: cleanedElements,
         previewImage: previewImage || null,
         description: templateDescription.trim() || null,
         isActive: true,
         updatedAt: serverTimestamp(),
+        // Ensure no undefined values in metadata
+        metadata: metadata || {},
       };
-
+  
+      // Remove any undefined values from templateData
+      const cleanedTemplateData: any = {};
+      for (const [key, value] of Object.entries(templateData)) {
+        if (value !== undefined) {
+          cleanedTemplateData[key] = value;
+        }
+      }
+  
       if (editingTemplate && editingTemplate.id) {
         const categoryIdForPath = editingTemplate.categoryId;
         const templateId = editingTemplate.id;
         
         if (categoryIdForPath !== templateCategory) {
+          // Category changed - create new template in new category and delete old one
           const newDocRef = await addDoc(
             collection(db, 'categories', templateCategory, 'templates'), 
-            { ...templateData, createdAt: serverTimestamp() }
+            { ...cleanedTemplateData, createdAt: serverTimestamp() }
           );
           
           await deleteDoc(doc(db, 'categories', categoryIdForPath, 'templates', templateId));
           
           alert('Template moved to new category and updated successfully!');
         } else {
+          // Same category - just update
           await updateDoc(
             doc(db, 'categories', categoryIdForPath, 'templates', templateId), 
-            templateData
+            cleanedTemplateData
           );
           alert('Template updated successfully!');
         }
       } else {
+        // Create new template
         await addDoc(collection(db, 'categories', templateCategory, 'templates'), {
-          ...templateData,
+          ...cleanedTemplateData,
           createdAt: serverTimestamp(),
         });
         alert('Template created successfully!');
       }
-
+  
       setShowTemplateForm(false);
       resetTemplateForm();
       
+      // Refresh data after save
       const fetchData = async () => {
         const catQuery = query(collection(db, 'categories'), orderBy('order'));
         const catSnap = await getDocs(catQuery);
@@ -529,7 +651,7 @@ const EventDashboard: React.FC = () => {
           ...doc.data()
         })) as Category[];
         setCategories(cats);
-
+  
         const templatePromises = cats.map(async (cat) => {
           const tempQuery = query(
             collection(db, `categories/${cat.id}/templates`), 
@@ -556,13 +678,18 @@ const EventDashboard: React.FC = () => {
       if (err.code === 'not-found') {
         alert(`Error: Template not found. It may have been deleted. 
         
-Try creating it as a new template instead.`);
+  Try creating it as a new template instead.`);
       } else {
         alert(`Failed: ${err.message}`);
       }
     }
   };
 
+  /**
+   * Deletes a template
+   * @param templateId - Template ID to delete
+   * @param categoryId - Parent category ID
+   */
   const handleDeleteTemplate = async (templateId: string, categoryId: string) => {
     if (!confirm('Are you sure you want to delete this template?')) return;
     
@@ -575,22 +702,25 @@ Try creating it as a new template instead.`);
     }
   };
 
+  /**
+   * Resets the template form to initial state
+   */
   const resetTemplateForm = () => {
     setTemplateName('');
     setTemplateCategory('');
     setTemplateDescription('');
     setPreviewImage(null);
-    setElements([{ id: Date.now(), type: 'rectangle', x: 0, y: 0, width: 800, height: 1000, bgColor: '#ffffff', locked: true }]);
-    setSelectedElementId(null);
     setEditingTemplate(null);
-    setIsDragging(false);
-    setResizing({ elementId: null, corner: null });
   };
 
+  // ==================== RENDER ====================
+
+  // Show loading spinner while checking auth or loading data
   if (authLoading || loading) {
     return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin" size={48} /></div>;
   }
 
+  // Don't render if user is not admin
   if (!isAdmin) return null;
 
   return (
@@ -600,7 +730,7 @@ Try creating it as a new template instead.`);
         <div className="p-8">
           <Header />
 
-          {/* Tabs */}
+          {/* Tab Navigation */}
           <div className="flex gap-6 mb-8 border-b">
             <button 
               onClick={() => setActiveTab('categories')} 
@@ -616,7 +746,7 @@ Try creating it as a new template instead.`);
             </button>
           </div>
 
-          {/* Categories Tab - Same as before */}
+          {/* Categories Tab Content */}
           {activeTab === 'categories' && (
             <div>
               <div className="flex justify-between mb-6">
@@ -693,7 +823,7 @@ Try creating it as a new template instead.`);
             </div>
           )}
 
-          {/* Templates Tab - Same as before */}
+          {/* Templates Tab Content */}
           {activeTab === 'templates' && (
             <div>
               <div className="flex justify-between mb-6">
@@ -809,7 +939,7 @@ Try creating it as a new template instead.`);
         </div>
       </div>
 
-      {/* Category Modal - Same as before */}
+      {/* Category Modal */}
       {showCategoryModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
@@ -853,432 +983,112 @@ Try creating it as a new template instead.`);
 
       {/* Template Designer Modal with Drag & Drop */}
       {showTemplateForm && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-7xl h-[95vh] flex overflow-hidden">
-            {/* Left Panel - Form & Controls */}
-            <div className="w-96 bg-gray-50 p-8 overflow-y-auto">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold">
-                  {editingTemplate ? 'Edit' : 'Design'} Template
-                </h3>
-                <button onClick={() => { setShowTemplateForm(false); resetTemplateForm(); }}>
-                  <X size={24} className="text-gray-500 hover:text-gray-700" />
-                </button>
-              </div>
+        <div className="fixed inset-0 z-50">
+          <EventTemplateEditor
+            isAdminMode={true}
+            initialElements={editingTemplate?.elements || []}
+            initialEventData={{
+              title: "Sample Event Title",
+              date: "2025-01-01",
+              time: "7:00 PM",
+              location: "Sample Location"
+            }}
+            adminTemplateName={editingTemplate?.name || ''}
+            adminTemplateDescription={editingTemplate?.description || ''}
+            adminTemplateCategory={editingTemplate?.categoryId || templateCategory}
+            adminCategories={categories}
+            onAdminSave={async (elements, templateData) => {
+              try {
+                // Clean elements before saving
+                const cleanedElements = elements.map(el => {
+                  const cleaned: any = {};
+                  for (const [key, value] of Object.entries(el)) {
+                    if (value !== undefined && value !== null && value !== '') {
+                      cleaned[key] = value;
+                    }
+                  }
+                  // Ensure ID is number
+                  if (typeof cleaned.id === 'string') {
+                    cleaned.id = Number(cleaned.id) || Date.now();
+                  }
+                  // Ensure locked is boolean
+                  if (cleaned.locked === undefined) {
+                    cleaned.locked = false;
+                  }
+                  return cleaned;
+                });
 
-              <div className="space-y-6">
-                <div>
-                  <label className="block font-medium mb-2">Template Name *</label>
-                  <input
-                    type="text"
-                    value={templateName}
-                    onChange={e => setTemplateName(e.target.value)}
-                    className="w-full px-4 py-3 border rounded-lg"
-                    placeholder="Elegant Wedding"
-                  />
-                </div>
+                // Prepare template data
+                const firestoreData: any = {
+                  name: templateData.name,
+                  categoryId: templateData.category || templateCategory,
+                  elements: cleanedElements,
+                  previewImage: templateData.previewImage || null,
+                  description: templateData.description || null,
+                  isActive: true,
+                  updatedAt: serverTimestamp(),
+                };
 
-                <div>
-                  <label className="block font-medium mb-2">Category *</label>
-                  <select
-                    value={templateCategory}
-                    onChange={e => setTemplateCategory(e.target.value)}
-                    className="w-full px-4 py-3 border rounded-lg"
-                  >
-                    <option value="">Select category</option>
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
-                </div>
+                // Clean undefined values
+                Object.keys(firestoreData).forEach(key => {
+                  if (firestoreData[key] === undefined) {
+                    delete firestoreData[key];
+                  }
+                });
 
-                <div>
-                  <label className="block font-medium mb-2">Description</label>
-                  <textarea
-                    value={templateDescription}
-                    onChange={e => setTemplateDescription(e.target.value)}
-                    className="w-full px-4 py-3 border rounded-lg"
-                    placeholder="Template description..."
-                    rows={3}
-                  />
-                </div>
+                if (editingTemplate) {
+                  // Update existing template
+                  await updateDoc(
+                    doc(db, 'categories', editingTemplate.categoryId, 'templates', editingTemplate.id),
+                    firestoreData
+                  );
+                } else {
+                  // Create new template
+                  await addDoc(
+                    collection(db, 'categories', templateCategory, 'templates'),
+                    { ...firestoreData, createdAt: serverTimestamp() }
+                  );
+                }
 
-                <div>
-                  <label className="block font-medium mb-2">Preview Image</label>
-                  <div className="border-2 border-dashed rounded-lg p-8 text-center">
-                    {previewImage ? (
-                      <img src={previewImage} alt="Preview" className="mx-auto max-h-48 rounded" />
-                    ) : (
-                      <p className="text-gray-500">Upload image for template preview</p>
-                    )}
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      className="mt-4" 
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onload = (event) => {
-                            setPreviewImage(event.target?.result as string);
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block font-medium mb-3">Add Elements</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={addTextElement}
-                      className="flex items-center justify-center gap-2 py-4 border-2 border-dashed rounded-xl hover:bg-gray-100"
-                    >
-                      <Type size={24} />
-                      Text
-                    </button>
-                    <button
-                      onClick={addImageElement}
-                      className="flex items-center justify-center gap-2 py-4 border-2 border-dashed rounded-xl hover:bg-gray-100"
-                    >
-                      <ImageIcon size={24} />
-                      Image
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleSaveTemplate}
-                  className="w-full py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold flex items-center justify-center gap-3"
-                >
-                  <Save size={24} />
-                  Save Template
-                </button>
-              </div>
-            </div>
-
-            {/* Right Panel - Canvas with Drag & Drop */}
-            <div className="flex-1 bg-gray-100 p-8 overflow-auto">
-              <div className="max-w-4xl mx-auto">
-                <h4 className="text-lg font-medium mb-4">Live Preview (Drag elements to position)</h4>
-                <div className="bg-white shadow-2xl rounded-xl overflow-hidden">
-                  <div 
-                    ref={canvasRef}
-                    className="relative" 
-                    style={{ 
-                      width: '800px', 
-                      height: '1000px', 
-                      margin: '0 auto',
-                      cursor: isDragging || resizing.elementId ? 'grabbing' : 'default'
-                    }}
-                    onMouseDown={(e) => {
-                      // Click on canvas background to deselect
-                      if (e.target === e.currentTarget) {
-                        setSelectedElementId(null);
-                      }
-                    }}
-                  >
-                    {elements.map(el => (
-                      <div
-                        key={el.id}
-                        className={`absolute ${selectedElementId === el.id ? 'border-blue-500 border-2' : 'border-transparent hover:border-blue-300 border-2'} ${el.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
-                        style={{
-                          left: el.x,
-                          top: el.y,
-                          width: el.width,
-                          height: el.height,
-                          transform: el.rotation ? `rotate(${el.rotation}deg)` : 'none',
-                          backgroundColor: el.bgColor || 'transparent',
-                          userSelect: 'none',
-                        }}
-                        onClick={(e) => {
-                          if (!el.locked) {
-                            setSelectedElementId(el.id);
-                          }
-                          e.stopPropagation();
-                        }}
-                        onMouseDown={(e) => {
-                          if (!el.locked && e.button === 0) {
-                            handleDragStart(e, el.id);
-                            e.stopPropagation();
-                          }
-                        }}
-                      >
-                        {/* Drag Handle */}
-                        {!el.locked && (
-                          <div 
-                            className="absolute -top-2 -left-2 bg-blue-500 text-white p-1 rounded-full cursor-move hover:bg-blue-600 z-10"
-                            onMouseDown={(e) => {
-                              handleDragStart(e, el.id);
-                              e.stopPropagation();
-                            }}
-                            title="Drag to move"
-                          >
-                            <GripVertical size={12} />
-                          </div>
-                        )}
-
-                        {/* Lock/Unlock Toggle */}
-                        <button
-                          onClick={(e) => {
-                            toggleElementLock(el.id);
-                            e.stopPropagation();
-                          }}
-                          className="absolute -top-2 -right-2 bg-gray-500 text-white p-1 rounded-full hover:bg-gray-600 z-10"
-                          title={el.locked ? "Unlock element" : "Lock element"}
-                        >
-                          {el.locked ? <Lock size={12} /> : <Unlock size={12} />}
-                        </button>
-
-                        {/* Resize Handles */}
-                        {!el.locked && selectedElementId === el.id && (
-                          <>
-                            {/* SE corner */}
-                            <div
-                              className="absolute bottom-0 right-0 w-4 h-4 bg-blue-500 cursor-se-resize"
-                              onMouseDown={(e) => handleResizeStart(e, el.id, 'se')}
-                            />
-                            {/* SW corner */}
-                            <div
-                              className="absolute bottom-0 left-0 w-4 h-4 bg-blue-500 cursor-sw-resize"
-                              onMouseDown={(e) => handleResizeStart(e, el.id, 'sw')}
-                            />
-                            {/* NE corner */}
-                            <div
-                              className="absolute top-0 right-0 w-4 h-4 bg-blue-500 cursor-ne-resize"
-                              onMouseDown={(e) => handleResizeStart(e, el.id, 'ne')}
-                            />
-                            {/* NW corner */}
-                            <div
-                              className="absolute top-0 left-0 w-4 h-4 bg-blue-500 cursor-nw-resize"
-                              onMouseDown={(e) => handleResizeStart(e, el.id, 'nw')}
-                            />
-                          </>
-                        )}
-
-                        {el.type === 'text' && (
-                          <div
-                            className="w-full h-full flex items-center justify-center p-4 text-center overflow-hidden"
-                            style={{ 
-                              fontSize: el.fontSize || 24, 
-                              color: el.color || '#000',
-                              pointerEvents: el.locked ? 'none' : 'auto'
-                            }}
-                            contentEditable={!el.locked}
-                            suppressContentEditableWarning
-                            onBlur={(e) => updateElement(el.id, { content: e.currentTarget.textContent || '' })}
-                          >
-                            {el.content || 'Click to edit'}
-                          </div>
-                        )}
-                        {el.type === 'image' && (
-                          <div className="w-full h-full">
-                            {el.imageUrl ? (
-                              <img src={el.imageUrl} alt="" className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                                <ImageIcon size={48} className="text-gray-400" />
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        
-                        {/* Delete Button */}
-                        <button
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
-                            deleteElement(el.id); 
-                          }}
-                          className="absolute -bottom-3 -right-3 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition shadow-lg z-10"
-                          title="Delete element"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Selected Element Controls */}
-                {selectedElement && (
-                  <div className="mt-8 bg-white rounded-lg shadow p-6">
-                    <div className="flex justify-between items-center mb-4">
-                      <h4 className="font-medium">
-                        Edit Selected Element ({selectedElement.type})
-                        {selectedElement.locked && <span className="ml-2 text-sm text-gray-500">(Locked)</span>}
-                      </h4>
-                      <button
-                        onClick={() => toggleElementLock(selectedElement.id)}
-                        className={`px-3 py-1 rounded text-sm ${selectedElement.locked ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}
-                      >
-                        {selectedElement.locked ? 'Unlock' : 'Lock'}
-                      </button>
-                    </div>
-                    
-                    {selectedElement.type === 'image' && (
-                      <div className="mb-4 p-4 border rounded-lg bg-gray-50">
-                        <label className="block font-medium mb-2">Image Upload</label>
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handleImageUpload(selectedElement.id, file);
-                              }
-                            }}
-                            className="flex-1"
-                            disabled={uploadingImage || selectedElement.locked}
-                          />
-                          {uploadingImage && <Loader2 className="animate-spin" size={20} />}
-                        </div>
-                        <p className="text-xs text-gray-500 mt-2">
-                          Supported formats: JPG, PNG, GIF
-                        </p>
-                      </div>
-                    )}
-                    
-                    <div className="grid grid-cols-4 gap-4 mb-4">
-                      <div>
-                        <label className="text-xs">X Position</label>
-                        <input
-                          type="number"
-                          value={selectedElement.x}
-                          onChange={e => updateElement(selectedElement.id, { x: Number(e.target.value) })}
-                          className="w-full px-3 py-2 border rounded"
-                          disabled={selectedElement.locked}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs">Y Position</label>
-                        <input
-                          type="number"
-                          value={selectedElement.y}
-                          onChange={e => updateElement(selectedElement.id, { y: Number(e.target.value) })}
-                          className="w-full px-3 py-2 border rounded"
-                          disabled={selectedElement.locked}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs">Width</label>
-                        <input
-                          type="number"
-                          value={selectedElement.width}
-                          onChange={e => updateElement(selectedElement.id, { width: Number(e.target.value) })}
-                          className="w-full px-3 py-2 border rounded"
-                          disabled={selectedElement.locked}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs">Height</label>
-                        <input
-                          type="number"
-                          value={selectedElement.height}
-                          onChange={e => updateElement(selectedElement.id, { height: Number(e.target.value) })}
-                          className="w-full px-3 py-2 border rounded"
-                          disabled={selectedElement.locked}
-                        />
-                      </div>
-                    </div>
-                    
-                    {selectedElement.type === 'text' && (
-                      <div className="mb-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="text-xs">Font Size</label>
-                            <input
-                              type="number"
-                              value={selectedElement.fontSize || 24}
-                              onChange={e => updateElement(selectedElement.id, { fontSize: Number(e.target.value) })}
-                              className="w-full px-3 py-2 border rounded"
-                              disabled={selectedElement.locked}
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs">Text Color</label>
-                            <input
-                              type="color"
-                              value={selectedElement.color || '#000000'}
-                              onChange={e => updateElement(selectedElement.id, { color: e.target.value })}
-                              className="w-full h-10 rounded"
-                              disabled={selectedElement.locked}
-                            />
-                          </div>
-                        </div>
-                        <div className="mt-4">
-                          <label className="text-xs">Background Color</label>
-                          <input
-                            type="color"
-                            value={selectedElement.bgColor || 'transparent'}
-                            onChange={e => updateElement(selectedElement.id, { bgColor: e.target.value })}
-                            className="w-full h-10 rounded"
-                            disabled={selectedElement.locked}
-                          />
-                        </div>
-                      </div>
-                    )}
-                    
-                    {selectedElement.type === 'rectangle' && (
-                      <div className="mb-4">
-                        <label className="text-xs">Background Color</label>
-                        <input
-                          type="color"
-                          value={selectedElement.bgColor || '#ffffff'}
-                          onChange={e => updateElement(selectedElement.id, { bgColor: e.target.value })}
-                          className="w-full h-10 rounded"
-                          disabled={selectedElement.locked}
-                        />
-                      </div>
-                    )}
-                    
-                    <div>
-                      <label className="text-xs">Rotation: {selectedElement.rotation || 0}°</label>
-                      <input
-                        type="range"
-                        min="0"
-                        max="360"
-                        value={selectedElement.rotation || 0}
-                        onChange={e => updateElement(selectedElement.id, { rotation: Number(e.target.value) })}
-                        className="w-full"
-                        disabled={selectedElement.locked}
-                      />
-                      <div className="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>0°</span>
-                        <span>180°</span>
-                        <span>360°</span>
-                      </div>
-                    </div>
-                    
-                    {!selectedElement.locked && (
-                      <button
-                        onClick={() => deleteElement(selectedElement.id)}
-                        className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium w-full"
-                      >
-                        Delete Element
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* Instructions */}
-                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                  <h5 className="font-medium text-blue-800 mb-2">How to Use:</h5>
-                  <ul className="text-sm text-blue-700 space-y-1">
-                    <li>• Click and drag the <GripVertical size={12} className="inline" /> handle to move elements</li>
-                    <li>• Drag corners to resize elements</li>
-                    <li>• Use the lock button to prevent accidental changes</li>
-                    <li>• Double-click text elements to edit content</li>
-                    <li>• Use the sliders and inputs for precise control</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
+                setShowTemplateForm(false);
+                resetTemplateForm();
+                
+                // Refresh templates list
+                const fetchTemplates = async () => {
+                  const templatePromises = categories.map(async (cat) => {
+                    const tempQuery = query(
+                      collection(db, `categories/${cat.id}/templates`), 
+                      orderBy('createdAt', 'desc')
+                    );
+                    const tempSnap = await getDocs(tempQuery);
+                    return tempSnap.docs.map(doc => ({
+                      id: doc.id,
+                      categoryId: cat.id,
+                      ...doc.data()
+                    })) as Template[];
+                  });
+                  
+                  const templateResults = await Promise.all(templatePromises);
+                  const allTemplates = templateResults.flat();
+                  setTemplates(allTemplates);
+                };
+                
+                fetchTemplates();
+                
+              } catch (error: any) {
+                console.error('Failed to save template:', error);
+                alert(`Error: ${error.message}`);
+                throw error;
+              }
+            }}
+            onAdminCancel={() => {
+              setShowTemplateForm(false);
+              resetTemplateForm();
+            }}
+            isLoading={false}
+          />
         </div>
-      )}
+)}
     </div>
   );
 };
