@@ -37,7 +37,6 @@ export default function Sidebar() {
           >
             <FileText size={20} className="mr-3" />
             <span>Event</span>
-            <ChevronDown size={16} className="ml-auto" />
           </Link>
 
           <Link href={"/admin/crudUsers"}
@@ -47,7 +46,6 @@ export default function Sidebar() {
           >
             <Users size={20} className="mr-3" />
             <span>User</span>
-            <ChevronDown size={16} className="ml-auto" />
           </Link>
         </nav>
 

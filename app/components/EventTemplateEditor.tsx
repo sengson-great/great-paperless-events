@@ -565,7 +565,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
       return;
     }
 
-    if (!privatePin) {
+    if (!isPublic && !privatePin) {
         alert("Please set a PIN for your private invitation");
         return;
     }
@@ -702,9 +702,6 @@ const handleAdminSave = async () => {
           previewImageUrl = await getDownloadURL(storageRef);
         } catch (uploadError) {
           console.error('Failed to upload preview image:', uploadError);
-          // Optionally: alert user and continue without image
-          alert('Preview image upload failed. Template will be saved without preview.');
-          //previewImageUrl = undefined;
         }
       }
   
@@ -1476,11 +1473,27 @@ const handleAdminSave = async () => {
                       <div
                         contentEditable={!el.locked}
                         suppressContentEditableWarning={true}
-                        onBlur={(e) =>
-                          updateElement(el.id, {
-                            content: e.currentTarget.textContent || "",
-                          })
-                        }
+                        onBlur={(e) => {
+                            // Get the HTML content
+                            const html = e.currentTarget.innerHTML;
+                            
+                            // Convert HTML line breaks to \n
+                            let text = html
+                              .replace(/<div>/gi, '\n') // Start of new div = newline
+                              .replace(/<\/div>/gi, '') // Remove closing div
+                              .replace(/<br\s*\/?>/gi, '\n') // <br> = newline
+                              .replace(/<\/p><p>/gi, '\n') // Paragraph breaks
+                              .replace(/<[^>]*>/g, '') // Remove any remaining HTML tags
+                              .replace(/&nbsp;/g, ' ') // Convert non-breaking spaces
+                              .trim();
+                            
+                            console.log('HTML:', html);
+                            console.log('Converted text:', JSON.stringify(text));
+                            
+                            updateElement(el.id, {
+                              content: text
+                            });
+                          }}
                         style={{
                           fontSize: `${el.fontSize || 16}px`,
                           color: el.color,

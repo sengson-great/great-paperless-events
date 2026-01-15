@@ -150,29 +150,34 @@ const EventTemplateViewer: React.FC<EventTemplateViewerProps> = ({ elements, eve
               boxSizing: 'border-box',
             }}
           >
-            {el.type === 'text' && (
-              <div
-                style={{
-                  fontSize: `${(el.fontSize || 16) * scale}px`,
-                  color: el.color,
-                  backgroundColor: el.bgColor || 'transparent',
-                  width: '100%',
-                  height: '100%',
-                  padding: `${Math.max(4, 8 * scale)}px`,
-                  boxSizing: 'border-box',
-                  // Match editor's text behavior
-                  whiteSpace: 'pre', // Preserve line breaks
-                  wordBreak: 'break-word', // Allow breaking long words
-                  overflowWrap: 'anywhere', // Break anywhere if needed
-                  overflow: 'visible',
-                  display: 'flex',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  alignContent: 'flex-start',
-                }}
-              >
-                {(el.content || '').replace(/\n/g, ' ').replace(/\r/g, ' ')}
-              </div>
+{el.type === 'text' && (
+  <div
+    style={{
+      position: 'relative',
+      width: '100%',
+      height: '100%',
+    }}
+  >
+    <div
+      style={{
+        fontSize: `${el.fontSize || 16}px`,
+        color: el.color,
+        backgroundColor: el.bgColor || 'transparent',
+        // width: '100%',
+        // height: '100%',
+        padding: '8px',
+        boxSizing: 'border-box',
+        // Scale the entire element
+        transform: `scale(${scale})`,
+        transformOrigin: 'top left',
+        // Adjust for scaling
+        width: `${100 / scale}%`,
+        height: `${100 / scale}%`,
+      }}
+    >
+      {el.content || ''}
+    </div>
+  </div>
 )}
             {el.type === 'rectangle' && (
               <div
