@@ -73,6 +73,8 @@ interface EventTemplateEditorProps {
   adminTemplateCategory?: string;
   adminCategories?: Array<{ id: string; name: string }>;
   isLoading?: boolean;
+  isMobile?: boolean;
+  isTablet?: boolean;
 }
 
 const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({

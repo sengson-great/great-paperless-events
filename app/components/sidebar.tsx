@@ -13,7 +13,7 @@ export default function Sidebar() {
     }
 
     return (
-        <div className="md:w-64 sm:w-28 w-20 bg-white shadow-lg">
+        <div className="w-64 bg-white shadow-lg">
         <div className="p-6">
           <Link href="/">
               <img src={Logo.src} alt="Logo" className=" w-full"/>

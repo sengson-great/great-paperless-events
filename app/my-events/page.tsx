@@ -7,6 +7,7 @@ import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestor
 import { db } from '@/lib/firebase';
 import Link from 'next/link';
 import { Button } from 'flowbite-react';
+import { redirect } from 'next/dist/server/api-utils';
 
 interface Invitation {
   id: string;
@@ -103,7 +104,7 @@ export default function MyEvents() {
         <h1 className="text-4xl font-bold mb-8">My Events</h1>
 
         {/* Tabs */}
-        <div className="flex gap-8 mb-8 border-b">
+        <div className=" gap-8 mb-8 border-b grid grid-cols-4">
           <button
             onClick={() => setActiveTab('created')}
             className={`pb-4 px-2 border-b-4 font-medium transition ${
@@ -124,8 +125,20 @@ export default function MyEvents() {
           >
             Saved Invitations ({savedInvites.length})
           </button>
-        </div>
+          <Link href={'/guests'}
+            className="pb-4 px-2 border-b-4 font-medium transition border-transparent text-gray-500!"
+          >
+            Guests
 
+          </Link>
+          <Link href={'/events'}
+            className="pb-4 px-2 border-b-4 font-medium transition border-transparent text-gray-500!"
+          >
+            Event List
+
+          </Link>
+        </div>
+        
         {loading ? (
           <div className="text-center py-12">
             <p className="text-xl">Loading...</p>

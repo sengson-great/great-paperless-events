@@ -207,9 +207,9 @@ export default function HomePage() {
               <div className="w-14 h-14 bg-linear-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center mb-6">
                 <Globe className="w-7 h-7 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Multi-Language</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">AI Assistant</h3>
               <p className="text-gray-600 leading-relaxed">
-                Support for Khmer, English, and other languages to reach all your guests.
+                Get help crafting the perfect invitation text with our built-in AI assistant.
               </p>
             </div>
           </div>
