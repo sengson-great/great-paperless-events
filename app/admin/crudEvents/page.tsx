@@ -12,7 +12,6 @@ import {
   collection, addDoc, updateDoc, deleteDoc, doc, 
   getDocs, orderBy, query, serverTimestamp
 } from 'firebase/firestore';
-import AdminTemplateBuilder from '@/app/components/AdminTemplateBuilder';
 import EventTemplateEditor from '@/app/components/EventTemplateEditor';
 
 // TypeScript interfaces for data structures
@@ -574,115 +573,115 @@ const EventDashboard: React.FC = () => {
   /**
    * Saves or updates a template
    */
-  const handleSaveTemplate = async (templateElements: any[], metadata: any) => {
-    try {
-      // Clean the data - remove undefined values
-      const cleanedElements = templateElements.map(el => {
-        const cleaned: any = {};
-        for (const [key, value] of Object.entries(el)) {
-          if (value !== undefined && value !== null) {
-            cleaned[key] = value;
-          }
-        }
-        return cleaned;
-      });
+  // const handleSaveTemplate = async (templateElements: any[], metadata: any) => {
+  //   try {
+  //     // Clean the data - remove undefined values
+  //     const cleanedElements = templateElements.map(el => {
+  //       const cleaned: any = {};
+  //       for (const [key, value] of Object.entries(el)) {
+  //         if (value !== undefined && value !== null) {
+  //           cleaned[key] = value;
+  //         }
+  //       }
+  //       return cleaned;
+  //     });
   
-      const templateData = {
-        name: templateName.trim(),
-        categoryId: templateCategory,
-        elements: cleanedElements,
-        previewImage: previewImage || null,
-        description: templateDescription.trim() || null,
-        isActive: true,
-        updatedAt: serverTimestamp(),
-        // Ensure no undefined values in metadata
-        metadata: metadata || {},
-      };
+  //     const templateData = {
+  //       name: templateName.trim(),
+  //       categoryId: templateCategory,
+  //       elements: cleanedElements,
+  //       previewImage: previewImage || null,
+  //       description: templateDescription.trim() || null,
+  //       isActive: true,
+  //       updatedAt: serverTimestamp(),
+  //       // Ensure no undefined values in metadata
+  //       metadata: metadata || {},
+  //     };
   
-      // Remove any undefined values from templateData
-      const cleanedTemplateData: any = {};
-      for (const [key, value] of Object.entries(templateData)) {
-        if (value !== undefined) {
-          cleanedTemplateData[key] = value;
-        }
-      }
+  //     // Remove any undefined values from templateData
+  //     const cleanedTemplateData: any = {};
+  //     for (const [key, value] of Object.entries(templateData)) {
+  //       if (value !== undefined) {
+  //         cleanedTemplateData[key] = value;
+  //       }
+  //     }
   
-      if (editingTemplate && editingTemplate.id) {
-        const categoryIdForPath = editingTemplate.categoryId;
-        const templateId = editingTemplate.id;
+  //     if (editingTemplate && editingTemplate.id) {
+  //       const categoryIdForPath = editingTemplate.categoryId;
+  //       const templateId = editingTemplate.id;
         
-        if (categoryIdForPath !== templateCategory) {
-          // Category changed - create new template in new category and delete old one
-          const newDocRef = await addDoc(
-            collection(db, 'categories', templateCategory, 'templates'), 
-            { ...cleanedTemplateData, createdAt: serverTimestamp() }
-          );
+  //       if (categoryIdForPath !== templateCategory) {
+  //         // Category changed - create new template in new category and delete old one
+  //         const newDocRef = await addDoc(
+  //           collection(db, 'categories', templateCategory, 'templates'), 
+  //           { ...cleanedTemplateData, createdAt: serverTimestamp() }
+  //         );
           
-          await deleteDoc(doc(db, 'categories', categoryIdForPath, 'templates', templateId));
+  //         await deleteDoc(doc(db, 'categories', categoryIdForPath, 'templates', templateId));
           
-          alert('Template moved to new category and updated successfully!');
-        } else {
-          // Same category - just update
-          await updateDoc(
-            doc(db, 'categories', categoryIdForPath, 'templates', templateId), 
-            cleanedTemplateData
-          );
-          alert('Template updated successfully!');
-        }
-      } else {
-        // Create new template
-        await addDoc(collection(db, 'categories', templateCategory, 'templates'), {
-          ...cleanedTemplateData,
-          createdAt: serverTimestamp(),
-        });
-        alert('Template created successfully!');
-      }
+  //         alert('Template moved to new category and updated successfully!');
+  //       } else {
+  //         // Same category - just update
+  //         await updateDoc(
+  //           doc(db, 'categories', categoryIdForPath, 'templates', templateId), 
+  //           cleanedTemplateData
+  //         );
+  //         alert('Template updated successfully!');
+  //       }
+  //     } else {
+  //       // Create new template
+  //       await addDoc(collection(db, 'categories', templateCategory, 'templates'), {
+  //         ...cleanedTemplateData,
+  //         createdAt: serverTimestamp(),
+  //       });
+  //       alert('Template created successfully!');
+  //     }
   
-      setShowTemplateForm(false);
-      resetTemplateForm();
+  //     setShowTemplateForm(false);
+  //     resetTemplateForm();
       
-      // Refresh data after save
-      const fetchData = async () => {
-        const catQuery = query(collection(db, 'categories'), orderBy('order'));
-        const catSnap = await getDocs(catQuery);
-        const cats = catSnap.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Category[];
-        setCategories(cats);
+  //     // Refresh data after save
+  //     const fetchData = async () => {
+  //       const catQuery = query(collection(db, 'categories'), orderBy('order'));
+  //       const catSnap = await getDocs(catQuery);
+  //       const cats = catSnap.docs.map(doc => ({
+  //         id: doc.id,
+  //         ...doc.data()
+  //       })) as Category[];
+  //       setCategories(cats);
   
-        const templatePromises = cats.map(async (cat) => {
-          const tempQuery = query(
-            collection(db, `categories/${cat.id}/templates`), 
-            orderBy('createdAt', 'desc')
-          );
-          const tempSnap = await getDocs(tempQuery);
-          return tempSnap.docs.map(doc => ({
-            id: doc.id,
-            categoryId: cat.id,
-            ...doc.data()
-          })) as Template[];
-        });
+  //       const templatePromises = cats.map(async (cat) => {
+  //         const tempQuery = query(
+  //           collection(db, `categories/${cat.id}/templates`), 
+  //           orderBy('createdAt', 'desc')
+  //         );
+  //         const tempSnap = await getDocs(tempQuery);
+  //         return tempSnap.docs.map(doc => ({
+  //           id: doc.id,
+  //           categoryId: cat.id,
+  //           ...doc.data()
+  //         })) as Template[];
+  //       });
         
-        const templateResults = await Promise.all(templatePromises);
-        const allTemplates = templateResults.flat();
-        setTemplates(allTemplates);
-      };
+  //       const templateResults = await Promise.all(templatePromises);
+  //       const allTemplates = templateResults.flat();
+  //       setTemplates(allTemplates);
+  //     };
       
-      setTimeout(() => {
-        fetchData();
-      }, 1000);
+  //     setTimeout(() => {
+  //       fetchData();
+  //     }, 1000);
       
-    } catch (err: any) {
-      if (err.code === 'not-found') {
-        alert(`Error: Template not found. It may have been deleted. 
+  //   } catch (err: any) {
+  //     if (err.code === 'not-found') {
+  //       alert(`Error: Template not found. It may have been deleted. 
         
-  Try creating it as a new template instead.`);
-      } else {
-        alert(`Failed: ${err.message}`);
-      }
-    }
-  };
+  // Try creating it as a new template instead.`);
+  //     } else {
+  //       alert(`Failed: ${err.message}`);
+  //     }
+  //   }
+  // };
 
   /**
    * Deletes a template
@@ -984,108 +983,115 @@ const EventDashboard: React.FC = () => {
       {showTemplateForm && (
         <div className="fixed inset-0 z-50">
           <EventTemplateEditor
-            isAdminMode={true}
-            initialElements={editingTemplate?.elements || []}
-            initialEventData={{
-              title: "Sample Event Title",
-              date: "2025-01-01",
-              time: "7:00 PM",
-              location: "Sample Location"
-            }}
-            adminTemplateName={editingTemplate?.name || ''}
-            adminTemplateDescription={editingTemplate?.description || ''}
-            adminTemplateCategory={editingTemplate?.categoryId || templateCategory}
-            adminCategories={categories}
-            onAdminSave={async (elements, templateData) => {
-              try {
-                // Clean elements before saving
-                const cleanedElements = elements.map(el => {
-                  const cleaned: any = {};
-                  for (const [key, value] of Object.entries(el)) {
-                    if (value !== undefined && value !== null && value !== '') {
-                      cleaned[key] = value;
-                    }
-                  }
-                  // Ensure ID is number
-                  if (typeof cleaned.id === 'string') {
-                    cleaned.id = Number(cleaned.id) || Date.now();
-                  }
-                  // Ensure locked is boolean
-                  if (cleaned.locked === undefined) {
-                    cleaned.locked = false;
-                  }
-                  return cleaned;
-                });
+  isAdminMode={true}
+  initialElements={editingTemplate?.elements || []}
+  initialEventData={{
+    title: "Sample Event Title",
+    date: "2025-01-01",
+    time: "7:00 PM",
+    location: "Sample Location"
+  }}
+  adminTemplateName={editingTemplate?.name || ''}
+  adminTemplateDescription={editingTemplate?.description || ''}
+  adminTemplateCategory={editingTemplate?.categoryId || templateCategory}
+  adminCategories={categories}
+  onAdminSave={async (elements, templateData) => {
+    try {
+      // Clean elements before saving
+      const cleanedElements = elements.map(el => {
+        const cleaned: any = {};
+        for (const [key, value] of Object.entries(el)) {
+          if (value !== undefined && value !== null && value !== '') {
+            cleaned[key] = value;
+          }
+        }
+        // Ensure ID is number
+        if (typeof cleaned.id === 'string') {
+          cleaned.id = Number(cleaned.id) || Date.now();
+        }
+        // Ensure locked is boolean
+        if (cleaned.locked === undefined) {
+          cleaned.locked = false;
+        }
+        return cleaned;
+      });
 
-                // Prepare template data
-                const firestoreData: any = {
-                  name: templateData.name,
-                  categoryId: templateData.category || templateCategory,
-                  elements: cleanedElements,
-                  previewImage: templateData.previewImage || null,
-                  description: templateData.description || null,
-                  isActive: true,
-                  updatedAt: serverTimestamp(),
-                };
+      // Prepare template data
+      const firestoreData: any = {
+        name: templateData.name,
+        categoryId: templateData.category || templateCategory,
+        elements: cleanedElements,
+        previewImage: templateData.previewImage || null,
+        description: templateData.description || null,
+        isActive: true,
+        updatedAt: serverTimestamp(),
+      };
 
-                // Clean undefined values
-                Object.keys(firestoreData).forEach(key => {
-                  if (firestoreData[key] === undefined) {
-                    delete firestoreData[key];
-                  }
-                });
+      // Clean undefined values
+      Object.keys(firestoreData).forEach(key => {
+        if (firestoreData[key] === undefined) {
+          delete firestoreData[key];
+        }
+      });
 
-                if (editingTemplate) {
-                  // Update existing template
-                  await updateDoc(
-                    doc(db, 'categories', editingTemplate.categoryId, 'templates', editingTemplate.id),
-                    firestoreData
-                  );
-                } else {
-                  // Create new template
-                  await addDoc(
-                    collection(db, 'categories', templateCategory, 'templates'),
-                    { ...firestoreData, createdAt: serverTimestamp() }
-                  );
-                }
+      console.log('Saving template with category:', templateData.category || templateCategory);
 
-                setShowTemplateForm(false);
-                resetTemplateForm();
-                
-                // Refresh templates list
-                const fetchTemplates = async () => {
-                  const templatePromises = categories.map(async (cat) => {
-                    const tempQuery = query(
-                      collection(db, `categories/${cat.id}/templates`), 
-                      orderBy('createdAt', 'desc')
-                    );
-                    const tempSnap = await getDocs(tempQuery);
-                    return tempSnap.docs.map(doc => ({
-                      id: doc.id,
-                      categoryId: cat.id,
-                      ...doc.data()
-                    })) as Template[];
-                  });
-                  
-                  const templateResults = await Promise.all(templatePromises);
-                  const allTemplates = templateResults.flat();
-                  setTemplates(allTemplates);
-                };
-                
-                fetchTemplates();
-                
-              } catch (error: any) {
-                console.error('Failed to save template:', error);
-                alert(`Error: ${error.message}`);
-                throw error;
-              }
-            }}
-            onAdminCancel={() => {
-              setShowTemplateForm(false);
-              resetTemplateForm();
-            }}
-            isLoading={false}
-          />
+      if (editingTemplate) {
+        // Update existing template
+        await updateDoc(
+          doc(db, 'categories', editingTemplate.categoryId, 'templates', editingTemplate.id),
+          firestoreData
+        );
+      } else {
+        // Create new template
+        const categoryId = templateData.category || templateCategory;
+        if (!categoryId) {
+          throw new Error('Category is required');
+        }
+        
+        await addDoc(
+          collection(db, 'categories', categoryId, 'templates'),
+          { ...firestoreData, createdAt: serverTimestamp() }
+        );
+      }
+
+      setShowTemplateForm(false);
+      resetTemplateForm();
+      
+      // Refresh templates list
+      const fetchTemplates = async () => {
+        const templatePromises = categories.map(async (cat) => {
+          const tempQuery = query(
+            collection(db, `categories/${cat.id}/templates`), 
+            orderBy('createdAt', 'desc')
+          );
+          const tempSnap = await getDocs(tempQuery);
+          return tempSnap.docs.map(doc => ({
+            id: doc.id,
+            categoryId: cat.id,
+            ...doc.data()
+          })) as Template[];
+        });
+        
+        const templateResults = await Promise.all(templatePromises);
+        const allTemplates = templateResults.flat();
+        setTemplates(allTemplates);
+      };
+      
+      fetchTemplates();
+      
+    } catch (error: any) {
+      console.error('Failed to save template:', error);
+      alert(`Error: ${error.message}`);
+      throw error;
+    }
+  }}
+  onAdminCancel={() => {
+    setShowTemplateForm(false);
+    resetTemplateForm();
+  }}
+  isLoading={false}
+/>
         </div>
 )}
     </div>
