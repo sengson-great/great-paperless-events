@@ -1600,199 +1600,201 @@ const handleAdminSave = async () => {
           </div>
         </div>
 
-        {/* Right Sidebar - Properties (Desktop only) - Hide in admin mode */}
-        {!isAdminMode && selectedEl && (
-          <div className="hidden lg:block w-64 bg-white border-l border-gray-200 p-4 overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold">Properties</h2>
-              <button
-                onClick={deleteElement}
-                className="p-2 text-red-500 hover:bg-red-50 rounded"
-              >
-                <Trash2 size={18} />
-              </button>
-            </div>
+        {/* Right Sidebar - Properties (Desktop only) */}
+{selectedEl && (
+  <div className="hidden lg:block w-64 bg-white border-l border-gray-200 p-4 overflow-y-auto">
+    <div className="flex items-center justify-between mb-4">
+      <h2 className="text-lg font-bold">Properties</h2>
+      <button
+        onClick={deleteElement}
+        className="p-2 text-red-500 hover:bg-red-50 rounded"
+      >
+        <Trash2 size={18} />
+      </button>
+    </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Position
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="number"
-                    value={Math.round(selectedEl.x)}
-                    onChange={(e) =>
-                      updateElement(selectedEl.id, {
-                        x: Number(e.target.value) || 0,
-                      })
-                    }
-                    disabled={selectedEl.locked}
-                    className="px-2 py-1 border rounded text-sm"
-                    placeholder="X"
-                  />
-                  <input
-                    type="number"
-                    value={Math.round(selectedEl.y)}
-                    onChange={(e) =>
-                      updateElement(selectedEl.id, {
-                        y: Number(e.target.value) || 0,
-                      })
-                    }
-                    disabled={selectedEl.locked}
-                    className="px-2 py-1 border rounded text-sm"
-                    placeholder="Y"
-                  />
-                </div>
-              </div>
+    <div className="space-y-4">
+      {/* Position */}
+      <div>
+        <label className="block text-sm font-medium mb-1">
+          Position
+        </label>
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            type="number"
+            value={Math.round(selectedEl.x)}
+            onChange={(e) =>
+              updateElement(selectedEl.id, {
+                x: Number(e.target.value) || 0,
+              })
+            }
+            disabled={selectedEl.locked}
+            className="px-2 py-1 border rounded text-sm"
+            placeholder="X"
+          />
+          <input
+            type="number"
+            value={Math.round(selectedEl.y)}
+            onChange={(e) =>
+              updateElement(selectedEl.id, {
+                y: Number(e.target.value) || 0,
+              })
+            }
+            disabled={selectedEl.locked}
+            className="px-2 py-1 border rounded text-sm"
+            placeholder="Y"
+          />
+        </div>
+      </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-1">Size</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="number"
-                    value={Math.round(selectedEl.width)}
-                    onChange={(e) =>
-                      updateElement(selectedEl.id, {
-                        width: Number(e.target.value) || 0,
-                      })
-                    }
-                    disabled={selectedEl.locked}
-                    className="px-2 py-1 border rounded text-sm"
-                    placeholder="W"
-                  />
-                  <input
-                    type="number"
-                    value={Math.round(selectedEl.height)}
-                    onChange={(e) =>
-                      updateElement(selectedEl.id, {
-                        height: Number(e.target.value) || 0,
-                      })
-                    }
-                    disabled={selectedEl.locked}
-                    className="px-2 py-1 border rounded text-sm"
-                    placeholder="H"
-                  />
-                </div>
-              </div>
+      {/* Size */}
+      <div>
+        <label className="block text-sm font-medium mb-1">Size</label>
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            type="number"
+            value={Math.round(selectedEl.width)}
+            onChange={(e) =>
+              updateElement(selectedEl.id, {
+                width: Number(e.target.value) || 0,
+              })
+            }
+            disabled={selectedEl.locked}
+            className="px-2 py-1 border rounded text-sm"
+            placeholder="W"
+          />
+          <input
+            type="number"
+            value={Math.round(selectedEl.height)}
+            onChange={(e) =>
+              updateElement(selectedEl.id, {
+                height: Number(e.target.value) || 0,
+              })
+            }
+            disabled={selectedEl.locked}
+            className="px-2 py-1 border rounded text-sm"
+            placeholder="H"
+          />
+        </div>
+      </div>
 
-              {selectedEl.type === "text" && (
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Font Size
-                  </label>
-                  <input
-                    type="number"
-                    value={selectedEl.fontSize}
-                    onChange={(e) =>
-                      updateElement(selectedEl.id, {
-                        fontSize: Number(e.target.value) || 16,
-                      })
-                    }
-                    disabled={selectedEl.locked}
-                    className="w-full px-2 py-1 border rounded text-sm"
-                  />
-                </div>
-              )}
+      {selectedEl.type === "text" && (
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Font Size
+          </label>
+          <input
+            type="number"
+            value={selectedEl.fontSize}
+            onChange={(e) =>
+              updateElement(selectedEl.id, {
+                fontSize: Number(e.target.value) || 16,
+              })
+            }
+            disabled={selectedEl.locked}
+            className="w-full px-2 py-1 border rounded text-sm"
+          />
+        </div>
+      )}
 
-              <div>
-                <label className="block text-sm font-medium mb-1">Color</label>
-                <input
-                  type="color"
-                  value={selectedEl.color || "#000000"}
-                  onChange={(e) =>
-                    updateElement(selectedEl.id, { color: e.target.value })
-                  }
-                  disabled={selectedEl.locked}
-                  className="w-full h-10 rounded cursor-pointer"
+      <div>
+        <label className="block text-sm font-medium mb-1">Color</label>
+        <input
+          type="color"
+          value={selectedEl.color || "#000000"}
+          onChange={(e) =>
+            updateElement(selectedEl.id, { color: e.target.value })
+          }
+          disabled={selectedEl.locked}
+          className="w-full h-10 rounded cursor-pointer"
+        />
+      </div>
+
+      {selectedEl.type !== "text" && selectedEl.type !== "image" && (
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Background
+          </label>
+          <input
+            type="color"
+            value={selectedEl.bgColor && selectedEl.bgColor.startsWith('#') 
+              ? selectedEl.bgColor 
+              : '#ffffff'}
+            onChange={(e) =>
+              updateElement(selectedEl.id, { bgColor: e.target.value })
+            }
+            disabled={selectedEl.locked}
+            className="w-full h-10 rounded cursor-pointer"
+          />
+          <button
+            onClick={() => updateElement(selectedEl.id, { bgColor: '' })}
+            className="mt-2 w-full px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm"
+            disabled={selectedEl.locked}
+          >
+            Clear Background
+          </button>
+        </div>
+      )}
+
+      {selectedEl.type === "image" && (
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Image
+          </label>
+          <div className="space-y-3">
+            {selectedEl.imageUrl && (
+              <div className="mb-2">
+                <p className="text-xs text-gray-500 mb-1">
+                  Current Image:
+                </p>
+                <img
+                  src={selectedEl.imageUrl}
+                  alt="Preview"
+                  className="w-full h-32 object-cover rounded-lg border"
+                  onError={(e) => {
+                    e.currentTarget.src =
+                      "https://via.placeholder.com/200x200?text=Image+Error";
+                  }}
                 />
               </div>
+            )}
 
-              {selectedEl.type !== "text" && selectedEl.type !== "image" && (
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Background
-                  </label>
-                  <input
-                    type="color"
-                    value={selectedEl.bgColor && selectedEl.bgColor.startsWith('#') 
-                      ? selectedEl.bgColor 
-                      : '#ffffff'}
-                    onChange={(e) =>
-                      updateElement(selectedEl.id, { bgColor: e.target.value })
-                    }
-                    disabled={selectedEl.locked}
-                    className="w-full h-10 rounded cursor-pointer"
-                  />
-                  <button
-                    onClick={() => updateElement(selectedEl.id, { bgColor: '' })}
-                    className="mt-2 w-full px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm"
-                    disabled={selectedEl.locked}
-                  >
-                    Clear Background
-                  </button>
-                </div>
-              )}
-
-              {selectedEl.type === "image" && (
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Image
-                  </label>
-                  <div className="space-y-3">
-                    {selectedEl.imageUrl && (
-                      <div className="mb-2">
-                        <p className="text-xs text-gray-500 mb-1">
-                          Current Image:
-                        </p>
-                        <img
-                          src={selectedEl.imageUrl}
-                          alt="Preview"
-                          className="w-full h-32 object-cover rounded-lg border"
-                          onError={(e) => {
-                            e.currentTarget.src =
-                              "https://via.placeholder.com/200x200?text=Image+Error";
-                          }}
-                        />
-                      </div>
-                    )}
-
-                    <button
-                      onClick={() => setShowImageUploadModal(true)}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm"
-                    >
-                      <Upload size={16} />
-                      {selectedEl.imageUrl ? "Change Image" : "Add Image"}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              <button
-                onClick={() =>
-                  updateElement(selectedEl.id, { locked: !selectedEl.locked })
-                }
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
-              >
-                {selectedEl.locked ? <Unlock size={18} /> : <Lock size={18} />}
-                {selectedEl.locked ? "Unlock" : "Lock"}
-              </button>
-
-              {/* Drag Instructions */}
-              <div className="pt-4 border-t border-gray-200">
-                <p className="text-xs text-gray-500 mb-2">Drag Controls:</p>
-                <div className="flex items-center gap-2 text-xs text-gray-600">
-                  <GripVertical size={12} className="text-blue-500" />
-                  <span>Drag handle to move</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
-                  <div className="w-3 h-3 bg-blue-500 rounded-sm"></div>
-                  <span>Drag corners to resize</span>
-                </div>
-              </div>
-            </div>
+            <button
+              onClick={() => setShowImageUploadModal(true)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm"
+            >
+              <Upload size={16} />
+              {selectedEl.imageUrl ? "Change Image" : "Add Image"}
+            </button>
           </div>
-        )}
+        </div>
+      )}
+
+      <button
+        onClick={() =>
+          updateElement(selectedEl.id, { locked: !selectedEl.locked })
+        }
+        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
+      >
+        {selectedEl.locked ? <Unlock size={18} /> : <Lock size={18} />}
+        {selectedEl.locked ? "Unlock" : "Lock"}
+      </button>
+
+      {/* Drag Instructions */}
+      <div className="pt-4 border-t border-gray-200">
+        <p className="text-xs text-gray-500 mb-2">Drag Controls:</p>
+        <div className="flex items-center gap-2 text-xs text-gray-600">
+          <GripVertical size={12} className="text-blue-500" />
+          <span>Drag handle to move</span>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
+          <div className="w-3 h-3 bg-blue-500 rounded-sm"></div>
+          <span>Drag corners to resize</span>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
       </div>
 
       {/* Bottom Navigation Bar - Mobile only - Hide in admin mode */}

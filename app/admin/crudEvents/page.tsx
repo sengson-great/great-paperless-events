@@ -2,8 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, Plus, Edit2, Trash2, Loader2, LayoutTemplate, 
-  Save, X, Move, Image as ImageIcon, Type, RotateCw, Upload,
-  GripVertical, Lock, Unlock
+  Save, X, Move, Image as ImageIcon,
 } from 'lucide-react';
 import Sidebar from '@/app/components/sidebar';
 import Header from '@/app/components/adminHeader';
@@ -749,7 +748,7 @@ const EventDashboard: React.FC = () => {
           {/* Categories Tab Content */}
           {activeTab === 'categories' && (
             <div>
-              <div className="flex justify-between mb-6">
+              <div className="flex justify-between flex-col sm:flex-row mb-6">
                 <h2 className="text-2xl font-bold">Categories</h2>
                 <button
                   onClick={() => {
@@ -764,7 +763,7 @@ const EventDashboard: React.FC = () => {
                 </button>
               </div>
 
-              <div className="bg-white rounded-xl shadow overflow-hidden">
+              <div className="bg-white rounded-xl shadow overflow-scroll">
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
@@ -789,7 +788,7 @@ const EventDashboard: React.FC = () => {
                             <td className="p-4">{category.order}</td>
                             <td className="p-4 font-medium">{category.name}</td>
                             <td className="p-4">
-                              <span className="bg-gray-100 px-3 py-1 rounded-full">
+                              <span className="bg-gray-100 px-1 py-1 rounded-full flex flex-wrap justify-center items-center">
                                 {categoryTemplates.length} templates
                               </span>
                             </td>

@@ -177,7 +177,7 @@ const UserManagement: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          <div className="bg-white rounded-xl shadow-lg overflow-scroll">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
