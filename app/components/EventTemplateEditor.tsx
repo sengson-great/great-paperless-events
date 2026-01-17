@@ -197,7 +197,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
     const element = elements.find((el) => el.id === selectedElement);
     if (!element || element.locked) return;
 
-    const rect = canvasRef.current.getBoundingClientRect();
+    //const rect = canvasRef.current.getBoundingClientRect();
     const scale = zoom;
     const deltaX = (e.clientX - dragStart.x) / scale;
     const deltaY = (e.clientY - dragStart.y) / scale;
@@ -223,7 +223,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
     const element = elements.find((el) => el.id === selectedElement);
     if (!element || element.locked) return;
 
-    const rect = canvasRef.current.getBoundingClientRect();
+    //const rect = canvasRef.current.getBoundingClientRect();
     const scale = zoom;
     const deltaX = (e.clientX - resizeStart.x) / scale;
     const deltaY = (e.clientY - resizeStart.y) / scale;
@@ -288,8 +288,8 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
     setIsDragging(true);
 
     if (canvasRef.current) {
-      const rect = canvasRef.current.getBoundingClientRect();
-      const scale = zoom;
+      //const rect = canvasRef.current.getBoundingClientRect();
+      //const scale = zoom;
 
       setDragStart({
         x: e.clientX,
@@ -313,8 +313,8 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
     setIsResizing(true);
 
     if (canvasRef.current) {
-      const rect = canvasRef.current.getBoundingClientRect();
-      const scale = zoom;
+      //const rect = canvasRef.current.getBoundingClientRect();
+      //const scale = zoom;
 
       setResizeStart({
         x: e.clientX,
@@ -370,18 +370,18 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
   };
 
   // Convert to Base64
-  const convertImageToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        resolve(event.target?.result as string);
-      };
-      reader.onerror = (error) => {
-        reject(error);
-      };
-      reader.readAsDataURL(file);
-    });
-  };
+//   const convertImageToBase64 = (file: File): Promise<string> => {
+//     return new Promise((resolve, reject) => {
+//       const reader = new FileReader();
+//       reader.onload = (event) => {
+//         resolve(event.target?.result as string);
+//       };
+//       reader.onerror = (error) => {
+//         reject(error);
+//       };
+//       reader.readAsDataURL(file);
+//     });
+//   };
 
   // Handle image file upload
   const handleImageFileUpload = async (
@@ -410,20 +410,20 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
       if (user) {
         imageUrl = await uploadImageToFirebase(file);
       } else {
-        imageUrl = await convertImageToBase64(file);
+        //imageUrl = await convertImageToBase64(file);
         alert(
           "Note: Image stored locally. Sign in to save images permanently."
         );
       }
 
-      createImageElement(imageUrl);
+      //createImageElement(imageUrl);
       setShowImageUploadModal(false);
     } catch (error: any) {
       console.error("Error uploading image:", error);
 
       try {
-        const base64Image = await convertImageToBase64(file);
-        createImageElement(base64Image);
+        //const base64Image = await convertImageToBase64(file);
+        //createImageElement(base64Image);
         setShowImageUploadModal(false);
         alert("Uploaded locally. Firebase upload failed: " + error.message);
       } catch (fallbackError) {
@@ -505,7 +505,7 @@ const EventTemplateEditor: React.FC<EventTemplateEditorProps> = ({
     if (!containerRef.current) return { width: 800, height: 1000 };
 
     const containerWidth = containerRef.current.clientWidth - 40;
-    const containerHeight = containerRef.current.clientHeight - 40;
+    //const containerHeight = containerRef.current.clientHeight - 40;
 
     const width = Math.min(containerWidth, 800);
     const height = width * 1.25;
@@ -696,7 +696,7 @@ const handleAdminSave = async () => {
           const blob = await response.blob();
           
           // Upload to Firebase Storage
-          const timestamp = Date.now();
+          //const timestamp = Date.now();
           const filename = `template-previews/${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
           const storageRef = ref(storage, filename);
           

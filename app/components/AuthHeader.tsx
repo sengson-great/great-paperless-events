@@ -1,5 +1,5 @@
 // app/components/AuthHeader.tsx
-"use client"; // ← Must be the very first line
+"use client";
 
 
 export default function AuthHeader() {

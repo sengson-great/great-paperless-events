@@ -215,14 +215,6 @@ export default function SignInPage() {
                   <label className="block text-sm font-medium text-gray-700">
                     Password
                   </label>
-                  {!isSignUp && (
-                    <Link 
-                      href="/auth/forgot-password" 
-                      className="text-sm text-purple-600 hover:text-purple-800 hover:underline"
-                    >
-                      Forgot password?
-                    </Link>
-                  )}
                 </div>
                 
                 <div className="relative">
